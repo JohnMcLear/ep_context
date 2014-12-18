@@ -128,6 +128,7 @@ exports.aceDomLineProcessLineAttributes = function(name, context){
   var supportedContexts = ["Section", "Paragraph", "Subsection"];
   $.each(tags, function(i, tag){
     if(supportedContexts.indexOf(tag) !== -1){
+      console.warn("supported");
       preHtml += '<context' + tag + '>';
       postHtml += '</context' + tag + '>';
       processed = true;
