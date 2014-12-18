@@ -16,10 +16,7 @@ exports.postAceInit = function(hook, context){
   });
 };
 
-// Show the subscript button as depressed when subscript is active 
-// at the caret location
-// TODO: create a postAceEditEvent hook that is fired once ace events
-// have been fully processed by the content collector.
+// Show the active Context
 exports.aceEditEvent = function(hook, call, cb){
   // If it's not a click or a key event and the text hasn't changed then do nothing
   var cs = call.callstack;
@@ -31,37 +28,11 @@ exports.aceEditEvent = function(hook, call, cb){
 
   // It looks like we should check to see if this section has this attribute
   setTimeout(function(){ // avoid race condition..
-
-    // Attribtes are never available on the first X caret position so we need to ignore that
-    if(call.rep.selStart[1] === 0){
-      // Attributes are never on the first line
-      $('.subscript > a').removeClass('activeButton');
-      return;
-    }
-
-    // the caret is in a new position..  Let's do some funky shit
-    if ( call.editorInfo.ace_getAttributeOnSelection("sub") ) {
-      // show the button as being depressed..  Not sad, but active..
-      $('.subscript > a').addClass('activeButton');
-    }else{
-      $('.subscript > a').removeClass('activeButton');
-    }
-
-    // Attribtes are never available on the first X caret position so we need to ignore that
-    if(call.rep.selStart[1] === 0){
-      // Attributes are never on the first line
-      $('.superscript > a').removeClass('activeButton');
-      return;
-    }
-
-    // the caret is in a new position..  Let's do some funky shit
-    if ( call.editorInfo.ace_getAttributeOnSelection("sup") ) {
-      // show the button as being depressed..  Not sad, but active..
-      $('.superscript > a').addClass('activeButton');
-    }else{
-      $('.superscript > a').removeClass('activeButton');
-    }
-
+    getLastContext(call, function(lastContext){
+      // Show this context as being enabled.
+      console.warn("lastContext", lastContext);
+      $('#context-selection').val(lastContext);
+    });
   },250);
 }
 
@@ -97,24 +68,47 @@ function doContext(level){
   _(_.range(firstLine, lastLine + 1)).each(function(i){
     // Does range already have attribute?
     var attributes = documentAttributeManager.getAttributeOnLine(i, 'context');
-
+    // are attempting to remove a line attribute?
     if(level === "dummy"){
       console.warn("removing attribute");
       // take last attribute from attributes, split it
       var split = attributes.split("$");
       // remove it and recreate new string
       attributes = split.slice(0, split.length - 2).join("$") + "$";
-    }
-
-    if(level !== "dummy"){
+    }else{
       if(attributes){
         attributes = attributes + "$" + level
       }else{
         attributes = level;
       }
     }
+    console.warn("attr2", attributes);
+    if(attributes.length > 1){
+      console.warn("setting attribute on line...");
+      documentAttributeManager.setAttributeOnLine(i, 'context', attributes);
+    }else{
+      console.warn("removing attrib on line");
+      documentAttributeManager.removeAttributeOnLine(i, 'context');
+    }
+  });
+}
 
-    documentAttributeManager.setAttributeOnLine(i, 'context', attributes);
+// Get the context of a line
+function getLastContext(context, cb){
+  var rep = context.rep;
+  var documentAttributeManager = context.documentAttributeManager;
+  var firstLine, lastLine;
+  firstLine = rep.selStart[0];
+  lastLine = Math.max(firstLine, rep.selEnd[0] - ((rep.selEnd[1] === 0) ? 1 : 0));
+  _(_.range(firstLine, lastLine + 1)).each(function(i){
+    // Does range already have attribute?
+    var attributes = documentAttributeManager.getAttributeOnLine(i, 'context');
+    // take last attribute from attributes, split it
+    var split = attributes.split("$");
+    // clean empty values
+    split = cleanArray(split);
+    var lastContext = split[split.length-1];
+    return cb(lastContext);
   });
 }
 
@@ -130,14 +124,33 @@ exports.aceDomLineProcessLineAttributes = function(name, context){
   tags = tags.split("$");
   var preHtml = "";
   var postHtml = "";
+  var processed = false;
+  var supportedContexts = ["Section", "Paragraph", "Subsection"];
   $.each(tags, function(i, tag){
-    preHtml += '<context' + tag + '>'
-    postHtml += '</context' + tag + '>'
+    if(supportedContexts.indexOf(tag) !== -1){
+      preHtml += '<context' + tag + '>';
+      postHtml += '</context' + tag + '>';
+      processed = true;
+    }
   });
-  var modifier = {
-    preHtml: preHtml,
-    postHtml: postHtml,
-    processedMarker: true
-  };
-  return [modifier];
+  if(processed){
+    var modifier = {
+      preHtml: preHtml,
+      postHtml: postHtml,
+      processedMarker: true
+    };
+    return [modifier];
+  }else{
+    return [];
+  }
 };
+
+function cleanArray(actual){
+  var newArray = new Array();
+  for(var i = 0; i<actual.length; i++){
+      if (actual[i]){
+        newArray.push(actual[i]);
+    }
+  }
+  return newArray;
+}
