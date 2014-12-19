@@ -11,7 +11,8 @@
         "aceDomLineProcessLineAttributes": "ep_context/static/js/index",
         "collectContentPre": "ep_context/static/js/shared",
         "collectContentPost": "ep_context/static/js/shared",
-        "aceInitialized": "ep_context/static/js/index"
+        "aceInitialized": "ep_context/static/js/index",
+        "aceKeyEvent": "ep_context/static/js/index"
       },
       "hooks": {
         "eejsBlock_editbarMenuLeft": "ep_context/index",

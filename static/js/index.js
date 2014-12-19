@@ -8,6 +8,14 @@ var _ = require('ep_etherpad-lite/static/js/underscore');
 
 // Bind the event handler to the toolbar buttons
 exports.postAceInit = function(hook, context){
+
+  // Temporarily bodge some CSS in for debugging
+  var inner = $('iframe[name="ace_outer"]').contents().find('iframe[name="ace_inner"]');
+  inner.contents().find("head").append("<style>contextparagraph{margin-left:10px;color:green;}</style>");
+  inner.contents().find("head").append("<style>contextsection{margin-left:5px;color:red;}</style>");
+  inner.contents().find("head").append("<style>contextsubsection{margin-left:15px;color:blue;}</style>");
+
+  // Selection event
   $('#context-selection').change(function(contextValue){
     var newValue = $('#context-selection').val();
     context.ace.callWithAce(function(ace){
@@ -20,17 +28,36 @@ exports.postAceInit = function(hook, context){
 exports.aceEditEvent = function(hook, call, cb){
   // If it's not a click or a key event and the text hasn't changed then do nothing
   var cs = call.callstack;
+  var rep = call.rep;
+  var documentAttributeManager = call.documentAttributeManager;
+
   if(!(cs.type == "handleClick") && !(cs.type == "handleKeyEvent") && !(cs.docTextChanged)){
     return false;
   }
   // If it's an initial setup event then do nothing..
   if(cs.type == "setBaseText" || cs.type == "setup") return false;
 
+  // Enter key pressed so new line, I don't think this will support a lot of edge cases.
+  if(cs.docTextChanged === true && cs.domClean === true && cs.repChanged === true && cs.type === "handleKeyEvent"){
+    // console.warn("possible enter", call);
+
+    var lastLine = rep.selStart[0]-1;
+    var thisLine = rep.selEnd[0];
+    // console.warn("lL", lastLine);
+    var attributes = documentAttributeManager.getAttributeOnLine(lastLine, 'context');
+
+    if(attributes){
+      // The line did have attributes so set them on the new line
+      documentAttributeManager.setAttributeOnLine(thisLine, 'context', attributes);
+      return true;
+    }
+  }
+
   // It looks like we should check to see if this section has this attribute
   setTimeout(function(){ // avoid race condition..
     getLastContext(call, function(lastContext){
       // Show this context as being enabled.
-      console.warn("lastContext", lastContext);
+      // console.warn("lastContext", lastContext);
       $('#context-selection').val(lastContext);
     });
   },250);
@@ -44,7 +71,6 @@ exports.aceEditEvent = function(hook, call, cb){
 // I'm not sure if this is actually required..
 exports.aceAttribsToClasses = function(hook, context){
   if(context.key == 'context'){
-    // console.warn(context);
     return ["context:"+context.value];
   }
 }
@@ -74,7 +100,7 @@ function doContext(level){
       // take last attribute from attributes, split it
       var split = attributes.split("$");
       // remove it and recreate new string
-      attributes = split.slice(0, split.length - 2).join("$") + "$";
+      attributes = split.slice(0, split.length - 2).join("$");
     }else{
       if(attributes){
         attributes = attributes + "$" + level
@@ -82,12 +108,11 @@ function doContext(level){
         attributes = level;
       }
     }
-    console.warn("attr2", attributes);
     if(attributes.length > 1){
-      console.warn("setting attribute on line...");
+      // console.warn("setting attribute on line...");
       documentAttributeManager.setAttributeOnLine(i, 'context', attributes);
     }else{
-      console.warn("removing attrib on line");
+      // console.warn("removing attrib on line");
       documentAttributeManager.removeAttributeOnLine(i, 'context');
     }
   });
@@ -128,7 +153,6 @@ exports.aceDomLineProcessLineAttributes = function(name, context){
   var supportedContexts = ["Section", "Paragraph", "Subsection"];
   $.each(tags, function(i, tag){
     if(supportedContexts.indexOf(tag) !== -1){
-      console.warn("supported");
       preHtml += '<context' + tag + '>';
       postHtml += '</context' + tag + '>';
       processed = true;
@@ -149,9 +173,18 @@ exports.aceDomLineProcessLineAttributes = function(name, context){
 function cleanArray(actual){
   var newArray = new Array();
   for(var i = 0; i<actual.length; i++){
-      if (actual[i]){
-        newArray.push(actual[i]);
+    if (actual[i]){
+      newArray.push(actual[i]);
     }
   }
   return newArray;
+}
+
+// Handle "Enter" events, this should keep the formatting of the previous line
+// If two line breaks are detected then we drop a level of context
+// Note that we don't handle return or paste events yet.
+// I dropped this in favor of edit events which are called after the DOM is redraw
+// so you don't get double line enters as the attributes are atetmpted to be added
+// before the DOM is redrawn
+exports.aceKeyEvent = function(hook, e){
 }

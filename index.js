@@ -15,7 +15,6 @@ exports.eejsBlock_dd_format = function (hook_name, args, cb) {
 }
 
 
-
 /******************** 
 * Editor
 */
