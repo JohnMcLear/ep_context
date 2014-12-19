@@ -8,6 +8,8 @@ var _ = require('ep_etherpad-lite/static/js/underscore');
 
 // Bind the event handler to the toolbar buttons
 exports.postAceInit = function(hook, context){
+  // Setup a crude enter count
+  clientVars.plugins.plugins.ep_context.crudeEnterCounter = 0;
 
   // Temporarily bodge some CSS in for debugging
   var inner = $('iframe[name="ace_outer"]').contents().find('iframe[name="ace_inner"]');
@@ -37,18 +39,31 @@ exports.aceEditEvent = function(hook, call, cb){
   // If it's an initial setup event then do nothing..
   if(cs.type == "setBaseText" || cs.type == "setup") return false;
 
-  // Enter key pressed so new line, I don't think this will support a lot of edge cases.
+  // Enter key pressed so new line, I don't think this will support a lot of edge cases IE pasting
   if(cs.docTextChanged === true && cs.domClean === true && cs.repChanged === true && cs.type === "handleKeyEvent"){
-    // console.warn("possible enter", call);
-
     var lastLine = rep.selStart[0]-1;
     var thisLine = rep.selEnd[0];
-    // console.warn("lL", lastLine);
     var attributes = documentAttributeManager.getAttributeOnLine(lastLine, 'context');
-
     if(attributes){
       // The line did have attributes so set them on the new line
+
+      // But before we apply a new attribute we should see if we're supposed to be dropping an context layer
+      if(clientVars.plugins.plugins.ep_context.crudeEnterCounter >= 1){
+        // console.warn("droppin an attribute", attributes);
+        var split = attributes.split("$");
+        // remove it and recreate new string
+        if(split.length > 1){
+          attributes = split.slice(0, split.length - 1).join("$");
+          documentAttributeManager.setAttributeOnLine(thisLine, 'context', attributes);
+        }else{
+          // no more attributes left so remove it
+          documentAttributeManager.removeAttributeOnLine(thisLine, 'context');
+        }
+        return true;
+      }
       documentAttributeManager.setAttributeOnLine(thisLine, 'context', attributes);
+      clientVars.plugins.plugins.ep_context.crudeEnterCounter++;
+      // console.warn(clientVars.plugins.plugins.ep_context.crudeEnterCounter);
       return true;
     }
   }
@@ -75,9 +90,7 @@ exports.aceAttribsToClasses = function(hook, context){
   }
 }
 
-// Block elements
-// I'm not sure if this is actually required..
-// Prevents character walking
+// Block elements - Prevents character walking
 exports.aceRegisterBlockElements = function(){
   return ["contextsection", "contextparagraph", "contextsubsection"];
 }
@@ -187,4 +200,7 @@ function cleanArray(actual){
 // so you don't get double line enters as the attributes are atetmpted to be added
 // before the DOM is redrawn
 exports.aceKeyEvent = function(hook, e){
+  if(e.evt.keyCode !== 13){
+    clientVars.plugins.plugins.ep_context.crudeEnterCounter = 0;
+  }
 }
