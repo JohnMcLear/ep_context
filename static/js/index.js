@@ -158,6 +158,7 @@ exports.aceInitialized = function(hook, context){
 // Here we convert the class context:h1 into a tag
 exports.aceDomLineProcessLineAttributes = function(name, context){
   var contexts = /context:(.*?) /i.exec(context.cls);
+  if(!contexts) return [];
   var tags = contexts[1];
   tags = tags.split("$");
   var preHtml = "";
