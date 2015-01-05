@@ -4,7 +4,7 @@ exports.collectContentPre = function(hook, context){
   var lineAttributes = state.lineAttributes
   var tagIndex = tname;
   // console.warn("tname", tname);
-  var supportedContexts = ["contextsection", "contextparagraph", "contextsubsection"];
+  var supportedContexts = ["contextsection", "contextparagraph", "contextsubsection", "contextform", "contextdistribution-code", "contextcongress", "contextsession", "contextheader", "contextenum"];
   if(supportedContexts.indexOf(tname) !== -1){
     // console.warn("processed tname", tname);
     lineAttributes['context'] = tname;

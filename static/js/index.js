@@ -1,6 +1,8 @@
 var _, $, jQuery;
 var $ = require('ep_etherpad-lite/static/js/rjquery').$;
 var _ = require('ep_etherpad-lite/static/js/underscore');
+var styles = ["Section", "Paragraph", "Subsection", "Form", "Distribution-code", "Congress", "Session", "Header", "Enum"];
+
 
 /*****
 * Basic setup
@@ -11,11 +13,22 @@ exports.postAceInit = function(hook, context){
   // Setup a crude enter count
   clientVars.plugins.plugins.ep_context.crudeEnterCounter = 0;
 
+  $.each(styles, function(k,v){
+    console.log(v);
+    $('#context-selection').append("<option value='"+v+"'>"+v+"</option>");
+  });
+
   // Temporarily bodge some CSS in for debugging
   var inner = $('iframe[name="ace_outer"]').contents().find('iframe[name="ace_inner"]');
   inner.contents().find("head").append("<style>contextparagraph{margin-left:10px;color:green;}</style>");
-  inner.contents().find("head").append("<style>contextsection{margin-left:5px;color:red;}</style>");
+  inner.contents().find("head").append("<style>contextform{text-align:center;display:block;}</style>");
+  inner.contents().find("head").append("<style>contextsection > contextheader, contextsection > contextenum{text-align:center;display:block;}</style>");
+  inner.contents().find("head").append("<style>contextenum{font-weight:bolder;}</style>");
+  inner.contents().find("head").append("<style>contextheader{font-weight:bolder;}</style>");
+  inner.contents().find("head").append("<style>contextcongress{font-variant: small-caps;}</style>");
+  inner.contents().find("head").append("<style>contextsession{font-variant: small-caps;}</style>");
   inner.contents().find("head").append("<style>contextsubsection{margin-left:15px;color:blue;}</style>");
+  inner.contents().find("head").append("<style>contextdistribution-code{text-align:right;display:block;}</style>");
 
   // Selection event
   $('#context-selection').change(function(contextValue){
@@ -92,7 +105,11 @@ exports.aceAttribsToClasses = function(hook, context){
 
 // Block elements - Prevents character walking
 exports.aceRegisterBlockElements = function(){
-  return ["contextsection", "contextparagraph", "contextsubsection"];
+  var styleArr = [];
+  $.each(styles, function(k,v){
+    styleArr.push("context"+v.toLowerCase());
+  });
+  return styleArr;
 }
 
 // Find out which lines are selected and assign them the context attribute.
@@ -164,9 +181,8 @@ exports.aceDomLineProcessLineAttributes = function(name, context){
   var preHtml = "";
   var postHtml = "";
   var processed = false;
-  var supportedContexts = ["Section", "Paragraph", "Subsection"];
   $.each(tags, function(i, tag){
-    if(supportedContexts.indexOf(tag) !== -1){
+    if(styles.indexOf(tag) !== -1){
       preHtml += '<context' + tag + '>';
       postHtml += '</context' + tag + '>';
       processed = true;
