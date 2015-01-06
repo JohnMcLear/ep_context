@@ -118,6 +118,15 @@ exports.aceRegisterBlockElements = function(){
   return styleArr;
 }
 
+// When pasting content etc. ensure line attributes are not lost.
+exports.collectContentLineText = function(hook, context){
+  top.console.log("WTF");
+  console.log(context);
+  console.log("context", context.state.attribs);
+  var foo = context.cc.getLines();
+  console.log("getLines", foo);
+}
+
 // Find out which lines are selected and assign them the context attribute.
 // Passing a level >= 0 will set a context on the selected lines, level < 0 
 // will remove it
@@ -178,7 +187,7 @@ exports.aceInitialized = function(hook, context){
   editorInfo.ace_doContext = _(doContext).bind(context);
 }
 
-// Here we convert the class context:h1 into a tag
+// Here we convert the class context:x into a tag
 exports.aceDomLineProcessLineAttributes = function(name, context){
   var contexts = /context:(.*?) /i.exec(context.cls);
   if(!contexts) return [];
@@ -187,6 +196,7 @@ exports.aceDomLineProcessLineAttributes = function(name, context){
   var preHtml = "";
   var postHtml = "";
   var processed = false;
+console.log(tags);
   $.each(tags, function(i, tag){
     if(styles.indexOf(tag) !== -1){
       preHtml += '<context' + tag + '>';

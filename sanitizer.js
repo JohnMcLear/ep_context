@@ -6,10 +6,6 @@ Example
 Turns:
 <contextForm><contextDistribution-code>IIB</contextDistribution-code></contextForm> <contextForm></contextForm> <contextForm><contextCongress>13th CONGRESS</contextForm>
 
-    // 0 is opening
-    // 1 is keep open
-    // 2 is closing
-    // 3 is open and closing
 Into:
 <contextForm>
   <contextDistribution-code>

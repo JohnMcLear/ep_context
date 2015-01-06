@@ -11,6 +11,7 @@
         "collectContentPre": "ep_context/static/js/shared",
         "collectContentPost": "ep_context/static/js/shared",
         "aceInitialized": "ep_context/static/js/index",
+        "collectContentLineText": "ep_context/static/js/index",
         "aceKeyEvent": "ep_context/static/js/index"
       },
       "hooks": {
