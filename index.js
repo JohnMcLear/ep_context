@@ -79,9 +79,7 @@ exports.getLineHTMLForExport = function (hook, line) {
 // clean up HTML into something sane
 exports.exportHTMLSend = function(hook, html, cb){
   var blockElements = ["Section", "Paragraph", "Subsection", "Form", "Distribution-code", "Congress", "Session", "Header", "Enum"];
-  console.log(sanitize);
   sanitize.exec(html, blockElements, function(error, cleanedHTML){
-    console.log(cleanedHTML);
     cb(cleanedHTML);
   });
 }

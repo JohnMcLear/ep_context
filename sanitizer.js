@@ -37,17 +37,23 @@ sanitize.exec("<contextForm>bla</contextForm>", ["contextForm", "contextSection"
 exports.sanitize = {
   exec: function(html, blockElements, cb){
     var _this = this;
-    _this.splitAndFlatten(html, blockElements, function(err, contexts, lines){
-      console.log("contexts", contexts);
-      _this.getOpenAndClose(contexts, blockElements, function(err, openAndClosed){
+    exports.sanitize.blockElements = blockElements;
+    _this.splitAndFlatten(html, function(err, contexts, lines){
+      _this.getOpenAndClose(contexts, function(err, openAndClosed){
         _this.rebuildHTML(openAndClosed, html, lines, function(err, cleanedHTML){
           cb(err, cleanedHTML);
         });
       })
     })
   },
-  splitAndFlatten: function(html, blockElements, callback){
+  splitAndFlatten: function(html, callback){
     // Split document into array of lines
+    var prefix = html.split("<body>");
+    var suffix = html.split("</body>");
+    exports.sanitize.prefix = prefix[0] + "<body>";
+    exports.sanitize.suffix = "</body>" + suffix[1];
+    html = prefix[1];
+    html = html.split("</body>")[0];
     var lines = html.split("<br>");
     var contexts = {};
     var err = null;
@@ -88,7 +94,7 @@ exports.sanitize = {
     });
     callback(err, contexts, lines);
   },
-  getOpenAndClose: function(contexts, blockElements, callback){
+  getOpenAndClose: function(contexts, callback){
     for (var line in contexts) {
       line = parseInt(line);
       var prevLine = contexts[line-1];
@@ -103,7 +109,6 @@ exports.sanitize = {
           if(nextLine[prop] == 3){
             // set this line to open only..
             if(contexts[line] && contexts[line][prop]){
-              // console.log("boob", contexts[line][prop]);
               contexts[line][prop] = 0;
             }
           }
@@ -172,6 +177,9 @@ exports.sanitize = {
         // 2 is closing
         // 3 is open and closing
         var propValue = line[prop];
+        var blockElements = exports.sanitize.blockElements;
+        var fullPropValue = prop.substring(7,propValue.length);
+        if(blockElements.indexOf(fullPropValue) === -1) return; // only process elements we support
         if(propValue === 0){
           lines[lineNumber] = "<"+prop+">"+lines[lineNumber];
         }
@@ -185,8 +193,8 @@ exports.sanitize = {
       });
 
     };
-  
-    lines = lines.join("<br>")
+    lines = lines.join("<br>\n")
+    lines = exports.sanitize.prefix + lines + exports.sanitize.suffix;
     callback(null, lines);
 
   },
@@ -206,14 +214,4 @@ exports.sanitize = {
       f.call(obj, arr[i]);
     }
   }
-
 }
-
-// var html = '<body> <contextForm><contextDistribution-code>IIB</contextForm></contextDistribution-code><br> <contextForm></contextForm><br> <contextForm><contextCongress>13th CONGRESS</contextForm></contextCongress><br> <contextForm><contextSession>2d session</contextForm></contextSession><br> <contextForm></contextForm><br> <contextForm>H.R 2126</contextForm><br>.....<br><br> <contextSection><contextHeader><contextSection>Section 101. Short tit...</contextSection></contextHeader></contextSection><br> <contextSection><contextSection> This act may.,...</contextSection></contextSection><br> <contextSection></contextSection><br> <contextSection><contextEnum><contextSection><contextEnum>Title I</contextSection></contextEnum></contextSection></contextEnum><br> <contextSection><contextSection></contextSection></contextSection><br> <contextSection><contextHeader>Better Buildings</contextSection></contextHeader><br> <contextSection><contextHeader><contextSection></contextSection></contextHeader></contextSection><br> <contextSection><contextSection>Sec. 102. Energy....</contextSection></contextSection><br> <contextSection><contextSection></contextSection></contextSection><br> <contextSection><contextSection>(a) Definitions.--</contextSection></contextSection><br> <contextSection><contextSection>In this section:</contextSection></contextSection><br> <contextSection><contextSection>    Administrator.--</contextSection></contextSection><br> <contextSection><contextSection>The term ....</contextSection></contextSection><br> <contextSection><contextSection></contextSection></contextSection><br><br></body>';
-// var blockElements = ["Section", "Paragraph", "Subsection", "Form", "Distribution-code", "Congress", "Session", "Header", "Enum"];
-
-/*
-exports.sanitize.exec(html, blockElements, function(err, cleanedHTML){
-  console.log(err, cleanedHTML);
-});
-*/
