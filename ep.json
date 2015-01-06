@@ -22,7 +22,7 @@
         "stylesForExport" : "ep_context/index",
         "exportHtmlAdditionalTags" : "ep_context/index",
         "getLineHTMLForExport" : "ep_context/index",
-        "exportHTML" : "ep_context/index"
+        "exportHTMLSend" : "ep_context/index"
       }
     }
   ]

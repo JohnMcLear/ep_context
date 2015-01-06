@@ -1,6 +1,6 @@
 var eejs = require('ep_etherpad-lite/node/eejs/');
 var Changeset = require("ep_etherpad-lite/static/js/Changeset");
-var sanitize = require('./sanitizer.js')
+var sanitize = require('./sanitizer.js').sanitize;
 
 var stylesCSS = ["contextparagraph{margin-left:10px;color:green;}",
   "contextform{text-align:center;display:block;}",
@@ -77,9 +77,13 @@ exports.getLineHTMLForExport = function (hook, line) {
 }
 
 // clean up HTML into something sane
-exports.exportHTML = function(hook, html, cb){
-  // TODO clean up the crazy ass line formatting into something more unicorn
-  cb(html);
+exports.exportHTMLSend = function(hook, html, cb){
+  var blockElements = ["Section", "Paragraph", "Subsection", "Form", "Distribution-code", "Congress", "Session", "Header", "Enum"];
+  console.log(sanitize);
+  sanitize.exec(html, blockElements, function(error, cleanedHTML){
+    console.log(cleanedHTML);
+    cb(cleanedHTML);
+  });
 }
 
 function _analyzeLine(alineAttrs, apool) {
