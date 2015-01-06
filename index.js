@@ -1,5 +1,17 @@
 var eejs = require('ep_etherpad-lite/node/eejs/');
 var Changeset = require("ep_etherpad-lite/static/js/Changeset");
+var sanitize = require('./sanitizer.js')
+
+var stylesCSS = ["contextparagraph{margin-left:10px;color:green;}",
+  "contextform{text-align:center;display:block;}",
+  "contextsection > contextheader, contextsection > contextenum{text-align:center;display:block;}",
+  "contextenum{font-weight:bolder;}",
+  "contextheader{font-weight:bolder;}",
+  "contextcongress{font-variant: small-caps;}",
+  "contextsession{font-variant: small-caps;}",
+  "contextsubsection{margin-left:15px;color:blue;}",
+  "contextdistribution-code{text-align:right;display:block;}"]
+
 
 /******************** 
 * UI 
@@ -32,10 +44,52 @@ exports.aceAttribClasses = function(hook_name, attr, cb){
 
 // Include CSS for HTML export
 exports.stylesForExport = function(hook, padId, cb){
-  cb("sub{vertical-align:sub;font-size:smaller}sub{vertical-align:sup;font-size:smaller}");  
+  var css = "";
+  stylesCSS.forEach(function(style){
+    css += style;
+  });
+  cb(css);
 };
 
 // Add the props to be supported in export
 exports.exportHtmlAdditionalTags = function(hook, pad, cb){
   cb(["sub", "sup"]);
 };
+
+// line, apool,attribLine,text
+exports.getLineHTMLForExport = function (hook, line) {
+  var contextV = _analyzeLine(line.attribLine, line.apool);
+  if(contextV){
+    var contexts = contextV.split("$");
+  }else{
+    return;
+  }
+  var before = "";
+  var after = "";
+  if (contexts.length) {
+    contexts.forEach(function(contextV){
+      before += "<context" + contextV + ">";
+      after += "</context" + contextV + ">";
+    });
+    return before + line.text.substring(1) + after + "<br>";
+  }else{
+  }
+}
+
+// clean up HTML into something sane
+exports.exportHTML = function(hook, html, cb){
+  // TODO clean up the crazy ass line formatting into something more unicorn
+  cb(html);
+}
+
+function _analyzeLine(alineAttrs, apool) {
+  var context = null;
+  if (alineAttrs) {
+    var opIter = Changeset.opIterator(alineAttrs);
+    if (opIter.hasNext()) {
+      var op = opIter.next();
+      context = Changeset.opAttributeValue(op, 'context', apool);
+    }
+  }
+  return context;
+}

@@ -2,6 +2,16 @@ var _, $, jQuery;
 var $ = require('ep_etherpad-lite/static/js/rjquery').$;
 var _ = require('ep_etherpad-lite/static/js/underscore');
 var styles = ["Section", "Paragraph", "Subsection", "Form", "Distribution-code", "Congress", "Session", "Header", "Enum"];
+var stylesCSS = ["contextparagraph{margin-left:10px;color:green;}",
+  "contextform{text-align:center;display:block;}",
+  "contextsection > contextheader, contextsection > contextenum{text-align:center;display:block;}",
+  "contextenum{font-weight:bolder;}",
+  "contextheader{font-weight:bolder;}",
+  "contextcongress{font-variant: small-caps;}",
+  "contextsession{font-variant: small-caps;}",
+  "contextsubsection{margin-left:15px;color:blue;}",
+  "contextdistribution-code{text-align:right;display:block;}"]
+
 
 
 /*****
@@ -20,15 +30,11 @@ exports.postAceInit = function(hook, context){
 
   // Temporarily bodge some CSS in for debugging
   var inner = $('iframe[name="ace_outer"]').contents().find('iframe[name="ace_inner"]');
-  inner.contents().find("head").append("<style>contextparagraph{margin-left:10px;color:green;}</style>");
-  inner.contents().find("head").append("<style>contextform{text-align:center;display:block;}</style>");
-  inner.contents().find("head").append("<style>contextsection > contextheader, contextsection > contextenum{text-align:center;display:block;}</style>");
-  inner.contents().find("head").append("<style>contextenum{font-weight:bolder;}</style>");
-  inner.contents().find("head").append("<style>contextheader{font-weight:bolder;}</style>");
-  inner.contents().find("head").append("<style>contextcongress{font-variant: small-caps;}</style>");
-  inner.contents().find("head").append("<style>contextsession{font-variant: small-caps;}</style>");
-  inner.contents().find("head").append("<style>contextsubsection{margin-left:15px;color:blue;}</style>");
-  inner.contents().find("head").append("<style>contextdistribution-code{text-align:right;display:block;}</style>");
+  var head = inner.contents().find("head");
+
+  $.each(stylesCSS, function(k,css){
+    head.append("<style>"+css+"</style>");
+  });
 
   // Selection event
   $('#context-selection').change(function(contextValue){
