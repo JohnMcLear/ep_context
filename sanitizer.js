@@ -163,6 +163,9 @@ exports.sanitize = {
         var re2 = new RegExp(endStr, 'g');
         lines[lineNumber] = lines[lineNumber].replace(re2, "");
       });
+
+      // remove leading white space
+      lines[lineNumber] = lines[lineNumber].substring(1, lines[lineNumber].length);
     });
 
     // Go through each line and add the context
@@ -194,6 +197,7 @@ exports.sanitize = {
 
     };
     lines = lines.join("<br>\n")
+    lines = lines.replace("<br><br>","<br>");
     lines = exports.sanitize.prefix + lines + exports.sanitize.suffix;
     callback(null, lines);
 

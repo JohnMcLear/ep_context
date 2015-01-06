@@ -71,6 +71,7 @@ exports.getLineHTMLForExport = function (hook, line) {
       before += "<context" + contextV + ">";
       after += "</context" + contextV + ">";
     });
+    console.warn("TODO: Use a line with attributes not just a text string");
     return before + line.text.substring(1) + after + "<br>";
   }else{
   }
