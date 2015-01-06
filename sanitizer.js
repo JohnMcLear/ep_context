@@ -196,8 +196,11 @@ exports.sanitize = {
       });
 
     };
-    lines = lines.join("<br>\n")
-    lines = lines.replace("<br><br>","<br>");
+// console.log(lines);
+    lines = lines.join("\n<br>")
+//    lines = lines.replace("<br>","<br>\n");
+// console.log(lines);
+
     lines = exports.sanitize.prefix + lines + exports.sanitize.suffix;
     callback(null, lines);
 
