@@ -24,7 +24,6 @@ exports.postAceInit = function(hook, context){
   clientVars.plugins.plugins.ep_context.crudeEnterCounter = 0;
 
   $.each(styles, function(k,v){
-    console.log(v);
     $('#context-selection').append("<option value='"+v+"'>"+v+"</option>");
   });
 
@@ -68,7 +67,6 @@ exports.aceEditEvent = function(hook, call, cb){
 
       // But before we apply a new attribute we should see if we're supposed to be dropping an context layer
       if(clientVars.plugins.plugins.ep_context.crudeEnterCounter >= 1){
-        // console.warn("droppin an attribute", attributes);
         var split = attributes.split("$");
         // remove it and recreate new string
         if(split.length > 1){
@@ -82,7 +80,6 @@ exports.aceEditEvent = function(hook, call, cb){
       }
       documentAttributeManager.setAttributeOnLine(thisLine, 'context', attributes);
       clientVars.plugins.plugins.ep_context.crudeEnterCounter++;
-      // console.warn(clientVars.plugins.plugins.ep_context.crudeEnterCounter);
       return true;
     }
   }
@@ -91,7 +88,6 @@ exports.aceEditEvent = function(hook, call, cb){
   setTimeout(function(){ // avoid race condition..
     getLastContext(call, function(lastContext){
       // Show this context as being enabled.
-      // console.warn("lastContext", lastContext);
       $('#context-selection').val(lastContext);
     });
   },250);
@@ -120,11 +116,6 @@ exports.aceRegisterBlockElements = function(){
 
 // When pasting content etc. ensure line attributes are not lost.
 exports.collectContentLineText = function(hook, context){
-  top.console.log("WTF");
-  console.log(context);
-  console.log("context", context.state.attribs);
-  var foo = context.cc.getLines();
-  console.log("getLines", foo);
 }
 
 // Find out which lines are selected and assign them the context attribute.
@@ -141,7 +132,6 @@ function doContext(level){
     var attributes = documentAttributeManager.getAttributeOnLine(i, 'context');
     // are attempting to remove a line attribute?
     if(level === "dummy"){
-      console.warn("removing attribute");
       // take last attribute from attributes, split it
       var split = attributes.split("$");
       // remove it and recreate new string
@@ -154,10 +144,8 @@ function doContext(level){
       }
     }
     if(attributes.length > 1){
-      // console.warn("setting attribute on line...");
       documentAttributeManager.setAttributeOnLine(i, 'context', attributes);
     }else{
-      // console.warn("removing attrib on line");
       documentAttributeManager.removeAttributeOnLine(i, 'context');
     }
   });
@@ -196,8 +184,12 @@ exports.aceDomLineProcessLineAttributes = function(name, context){
   var preHtml = "";
   var postHtml = "";
   var processed = false;
-console.log(tags);
   $.each(tags, function(i, tag){
+    if(tag.substring(0,7) === "context"){
+      // on paste we have the correct context defined so we need to modify it back to the tag
+      tag = tag.substring(7,tag.length); // cake
+      tag = tag.charAt(0).toUpperCase() + tag.slice(1);
+    }
     if(styles.indexOf(tag) !== -1){
       preHtml += '<context' + tag + '>';
       postHtml += '</context' + tag + '>';
