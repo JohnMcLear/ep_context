@@ -72,9 +72,13 @@ exports.aceEditEvent = function(hook, call, cb){
         if(split.length > 1){
           attributes = split.slice(0, split.length - 1).join("$");
           documentAttributeManager.setAttributeOnLine(thisLine, 'context', attributes);
+          // remove on previous line too
+          documentAttributeManager.setAttributeOnLine(thisLine-1, 'context', attributes);
         }else{
           // no more attributes left so remove it
           documentAttributeManager.removeAttributeOnLine(thisLine, 'context');
+          // remove on previous line too
+          documentAttributeManager.removeAttributeOnLine(thisLine-1, 'context');
         }
         return true;
       }
