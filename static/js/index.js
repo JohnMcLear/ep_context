@@ -50,7 +50,6 @@ exports.aceEditEvent = function(hook, call, cb){
   var cs = call.callstack;
   var rep = call.rep;
   var documentAttributeManager = call.documentAttributeManager;
-
   if(!(cs.type == "handleClick") && !(cs.type == "handleKeyEvent") && !(cs.docTextChanged)){
     return false;
   }
@@ -61,10 +60,11 @@ exports.aceEditEvent = function(hook, call, cb){
   if(cs.docTextChanged === true && cs.domClean === true && cs.repChanged === true && cs.type === "handleKeyEvent"){
     var lastLine = rep.selStart[0]-1;
     var thisLine = rep.selEnd[0];
+
+    // This should only fire on a new line, at the moment it fires on a new tab!
     var attributes = documentAttributeManager.getAttributeOnLine(lastLine, 'context');
     if(attributes){
       // The line did have attributes so set them on the new line
-
       // But before we apply a new attribute we should see if we're supposed to be dropping an context layer
       if(clientVars.plugins.plugins.ep_context.crudeEnterCounter >= 1){
         var split = attributes.split("$");
@@ -76,13 +76,19 @@ exports.aceEditEvent = function(hook, call, cb){
           documentAttributeManager.setAttributeOnLine(thisLine-1, 'context', attributes);
         }else{
           // no more attributes left so remove it
+          // documentAttributeManager.setAttributeOnLine(thisLine, 'context', ['null']);
           documentAttributeManager.removeAttributeOnLine(thisLine, 'context');
-          // remove on previous line too
+          // remove on previous line too	
+          // documentAttributeManager.setAttributeOnLine(thisLine-1, 'context', ['null']);
           documentAttributeManager.removeAttributeOnLine(thisLine-1, 'context');
         }
         return true;
+      }else{ // first enter will keep the attribute
+        // Make sure the line doesn't have any content in already
+        var blankLine = call.rep.alines[thisLine] === "*0|1+1";
+        if(!blankLine) return;
+        documentAttributeManager.setAttributeOnLine(thisLine, 'context', attributes);
       }
-      documentAttributeManager.setAttributeOnLine(thisLine, 'context', attributes);
       clientVars.plugins.plugins.ep_context.crudeEnterCounter++;
       return true;
     }
