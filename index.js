@@ -33,8 +33,7 @@ exports.eejsBlock_dd_format = function (hook_name, args, cb) {
 
 // Allow <whatever> to be an attribute 
 exports.aceAttribClasses = function(hook_name, attr, cb){
-  attr.sub = 'tag:sub';
-  attr.sup = 'tag:sup';
+  attr.contextsection = 'tag:contextsection';
   cb(attr);
 }
 
@@ -53,7 +52,7 @@ exports.stylesForExport = function(hook, padId, cb){
 
 // Add the props to be supported in export
 exports.exportHtmlAdditionalTags = function(hook, pad, cb){
-  cb(["sub", "sup"]);
+  cb(["contextsection"]);
 };
 
 // line, apool,attribLine,text
@@ -72,8 +71,11 @@ exports.getLineHTMLForExport = function (hook, line) {
       after += "</context" + contextV + ">";
     });
     console.warn("TODO: Use a line with attributes not just a text string");
+ 
+    // Remove leading * else don't..
     return before + line.text.substring(1) + after + "<br>";
-  }else{
+  }else{ // no context, nothing to remove
+    return line.text;
   }
 }
 

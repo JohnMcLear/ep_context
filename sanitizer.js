@@ -161,7 +161,13 @@ exports.sanitize = {
       });
 
       // remove leading white space
-      lines[lineNumber] = lines[lineNumber].substring(1, lines[lineNumber].length);
+      if(lines[lineNumber].substring(0,1) === " "){
+        lines[lineNumber] = lines[lineNumber].substring(1, lines[lineNumber].length);
+      }else{
+        lines[lineNumber] = lines[lineNumber].substring(0, lines[lineNumber].length);
+      }
+
+      // Note that this leaves in the leading * which is probably unintended
     });
 
     // Go through each line and add the context
