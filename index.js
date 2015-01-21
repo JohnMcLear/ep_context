@@ -1,6 +1,8 @@
 var eejs = require('ep_etherpad-lite/node/eejs/');
 var Changeset = require("ep_etherpad-lite/static/js/Changeset");
 var sanitize = require('./sanitizer.js').sanitize;
+var Security = require('ep_etherpad-lite/static/js/security'); 
+var _encodeWhitespace = require('ep_etherpad-lite/node/utils/ExportHelper')._encodeWhitespace;
 
 var stylesCSS = ["contextparagraph{margin-left:10px;color:green;}",
   "contextform{text-align:center;display:block;}",
@@ -58,24 +60,27 @@ exports.exportHtmlAdditionalTags = function(hook, pad, cb){
 // line, apool,attribLine,text
 exports.getLineHTMLForExport = function (hook, line) {
   var contextV = _analyzeLine(line.attribLine, line.apool);
+
+  // If it has a context
   if(contextV){
     var contexts = contextV.split("$");
   }else{
-    return;
+    return line.lineContent +"<br>";
   }
+
   var before = "";
   var after = "";
+
   if (contexts.length) {
     contexts.forEach(function(contextV){
       before += "<context" + contextV + ">";
       after += "</context" + contextV + ">";
     });
-    console.warn("TODO: Use a line with attributes not just a text string");
- 
     // Remove leading * else don't..
-    return before + line.text.substring(1) + after + "<br>";
+    var newString = before + line.lineContent.substring(1) + after + "<br>";
+    return newString;
   }else{ // no context, nothing to remove
-    return line.text;
+    return line.lineContent;
   }
 }
 

@@ -65,6 +65,11 @@ exports.sanitize = {
       contexts[lineNumber] = {};
 
       while ((m = re.exec(line)) != null) {
+
+        // m[1] is not in array return
+        var prop = m[1].charAt(0).toUpperCase() + m[1].slice(1);
+        if(exports.sanitize.blockElements.indexOf(prop) == -1) return;
+
         if (m.index === re.lastIndex) {
           re.lastIndex++;
         }
@@ -100,37 +105,41 @@ exports.sanitize = {
       // for each property..
       for (var prop in thisLine){
 
-        if(thisLine[prop] === 3){ // if its open and close
-          // Does the next line have this context?
-          if(nextLine[prop] == 3){
-            // set this line to open only..
-            if(contexts[line] && contexts[line][prop]){
-              contexts[line][prop] = 0;
-            }
-          }
-        }
 
-        if(thisLine[prop] === 0){ // if its opening
-          // Does the prev line have this context open already?
-          if((prevLine && prevLine[prop] == 0) || (prevLine && prevLine[prop] == 1)){
-            // set this line to open only..
-            if(contexts[line]){
-              contexts[line][prop] = 1; // set it to keep open
-            }
-          }
-        }
-
-        if(thisLine[prop] === 3){ // if its opening and closing
-          // Does the next line keep this context?
-          if( (!nextLine || !nextLine[prop])){
-            if (prevLine && (prevLine[prop] === 1 || prevLine[prop] === 0)){
+        // If we're handling these blocks
+//        if(exports.sanitize.blockElements.indexOf(prop) !== -1){
+          if(thisLine[prop] === 3){ // if its open and close
+            // Does the next line have this context?
+            if(nextLine[prop] == 3){
               // set this line to open only..
-              if(contexts[line]){
-                contexts[line][prop] = 2; // set it to closed
+              if(contexts[line] && contexts[line][prop]){
+                contexts[line][prop] = 0;
               }
             }
           }
-        }
+
+          if(thisLine[prop] === 0){ // if its opening
+            // Does the prev line have this context open already?
+            if((prevLine && prevLine[prop] == 0) || (prevLine && prevLine[prop] == 1)){
+              // set this line to open only..
+              if(contexts[line]){
+                contexts[line][prop] = 1; // set it to keep open
+              }
+            }
+          }
+ 
+          if(thisLine[prop] === 3){ // if its opening and closing
+            // Does the next line keep this context?
+            if( (!nextLine || !nextLine[prop])){
+              if (prevLine && (prevLine[prop] === 1 || prevLine[prop] === 0)){
+                // set this line to open only..
+                if(contexts[line]){
+                  contexts[line][prop] = 2; // set it to closed
+                }
+              }
+            }
+          }
+//        }
       }
     }
     callback(null, contexts)
@@ -198,10 +207,7 @@ exports.sanitize = {
       });
 
     };
-// console.log(lines);
     lines = lines.join("\n<br>")
-//    lines = lines.replace("<br>","<br>\n");
-// console.log(lines);
 
     lines = exports.sanitize.prefix + lines + exports.sanitize.suffix;
     callback(null, lines);
