@@ -20,6 +20,9 @@ var stylesCSS = ["contextparagraph{margin-left:10px;color:green;}",
 
 // Bind the event handler to the toolbar buttons
 exports.postAceInit = function(hook, context){
+  // Put the styles available as external so things like table of contents can smell them
+  clientVars.plugins.plugins.ep_context.styles = styles;
+
   // Setup a crude enter count
   clientVars.plugins.plugins.ep_context.crudeEnterCounter = 0;
 
