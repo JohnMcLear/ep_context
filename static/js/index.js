@@ -1,7 +1,9 @@
 var _, $, jQuery;
 var $ = require('ep_etherpad-lite/static/js/rjquery').$;
 var _ = require('ep_etherpad-lite/static/js/underscore');
-var styles = ["Section", "Paragraph", "Subsection", "Form", "Distribution-code", "Congress", "Session", "Header", "Enum"];
+// var styles = ["Section", "Paragraph", "Subsection", "Form", "Distribution-code", "Congress", "Session", "Header", "Enum"];
+var styles = ["Title", "Whereas"];
+/*
 var stylesCSS = ["contextparagraph{margin-left:10px;color:green;}",
   "contextform{text-align:center;display:block;}",
   "contextsection > contextheader, contextsection > contextenum{text-align:center;display:block;}",
@@ -11,6 +13,10 @@ var stylesCSS = ["contextparagraph{margin-left:10px;color:green;}",
   "contextsession{font-variant: small-caps;}",
   "contextsubsection{margin-left:15px;color:blue;}",
   "contextdistribution-code{text-align:right;display:block;}"]
+*/
+
+var stylesCSS = ["contexttitle{text-align:center;display:block;font-size:18px;}",
+  "contextwhereas::before{content: 'Whereas '}"];
 
 
 

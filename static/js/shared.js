@@ -1,4 +1,5 @@
-var supportedContexts = ["contextsection", "contextparagraph", "contextsubsection", "contextform", "contextdistribution-code", "contextcongress", "contextsession", "contextheader", "contextenum"];
+// var supportedContexts = ["contextsection", "contextparagraph", "contextsubsection", "contextform", "contextdistribution-code", "contextcongress", "contextsession", "contextheader", "contextenum"];
+var supportedContexts = ["contexttitle", "contextwhereas"];
 
 exports.collectContentPre = function(hook, context){
   var tname = context.tname;
