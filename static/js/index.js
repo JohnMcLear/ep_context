@@ -15,7 +15,7 @@ var stylesCSS = ["contextparagraph{margin-left:10px;color:green;}",
   "contextdistribution-code{text-align:right;display:block;}"]
 */
 
-var stylesCSS = ["contexttitle{text-align:center;display:block;font-size:18px;}",
+var stylesCSS = ["contexttitle{text-align:center;display:block;font-size:18px;line-height:36px;}",
   "contextwhereas::before{content: 'Whereas '}"];
 
 
@@ -210,8 +210,8 @@ exports.aceDomLineProcessLineAttributes = function(name, context){
       tag = tag.charAt(0).toUpperCase() + tag.slice(1);
     }
     if(styles.indexOf(tag) !== -1){
-      preHtml += '<context' + tag + '>';
-      postHtml += '</context' + tag + '>';
+      preHtml += '<context' + tag + ' class="context">';
+      postHtml += '</context' + tag + ' class="context">';
       processed = true;
     }
   });

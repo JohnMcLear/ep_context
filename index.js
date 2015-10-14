@@ -15,7 +15,7 @@ var stylesCSS = ["contextparagraph{margin-left:10px;color:green;}",
   "contextsubsection{margin-left:15px;color:blue;}",
   "contextdistribution-code{text-align:right;display:block;}"]
 */
-var stylesCSS = ["contexttitle{text-align:center;display:block;font-size:18px;}",
+var stylesCSS = ["contexttitle{text-align:center;display:block;font-size:18px;line-height:20px;}",
   "contextwhereas::before{content: 'Whereas '}"];
 
 /******************** 
