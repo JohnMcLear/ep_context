@@ -1,6 +1,7 @@
 var _, $, jQuery;
 var $ = require('ep_etherpad-lite/static/js/rjquery').$;
 var _ = require('ep_etherpad-lite/static/js/underscore');
+
 // var styles = ["Section", "Paragraph", "Subsection", "Form", "Distribution-code", "Congress", "Session", "Header", "Enum"];
 var styles = ["Title", "Whereas"];
 /*
@@ -15,8 +16,10 @@ var stylesCSS = ["contextparagraph{margin-left:10px;color:green;}",
   "contextdistribution-code{text-align:right;display:block;}"]
 */
 
-var stylesCSS = ["contexttitle{text-align:center;display:block;font-size:18px;line-height:36px;}",
-  "contextwhereas::before{content: 'Whereas '}"];
+var stylesCSS = [
+  "contexttitle{text-align:center;display:block;font-size:18px;line-height:36px;}",
+  "contextwhereas::before{content: 'Whereas '}"
+];
 
 
 
@@ -33,7 +36,7 @@ exports.postAceInit = function(hook, context){
   clientVars.plugins.plugins.ep_context.crudeEnterCounter = 0;
 
   $.each(styles, function(k,v){
-    $('#context-selection').append("<option value='"+v+"'>"+v+"</option>");
+    $('.context-selection').append("<option value='"+v+"'>"+v+"</option>");
   });
 
   // Temporarily bodge some CSS in for debugging
@@ -45,12 +48,61 @@ exports.postAceInit = function(hook, context){
   });
 
   // Selection event
-  $('#context-selection').change(function(contextValue){
-    var newValue = $('#context-selection').val();
+  $('.context-selection').change(function(contextValue){
+    var newValue = $('.context-selection').val();
     context.ace.callWithAce(function(ace){
       ace.ace_doContext(newValue);
     },'context' , true);
   });
+
+  var contextControlsContainerHTML = '<div id="contextButtonsContainer" style="display:block;z-index:1;margin-left:100px;"></div>';
+  var buttonsHTML = '<div id="contextArrow" style="position:absolute;cursor:pointer;border:solid 1px black;padding:0px 2px 0px 2px" unselectable="on">></div>';
+  var optionsHTML = $('.context').html();
+  var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
+
+  // Add control stuff to the UI
+  padOuter.find("#sidediv").after(contextControlsContainerHTML);
+  padOuter.find("#contextButtonsContainer").html(buttonsHTML);
+  padOuter.find("#contextButtonsContainer").append(optionsHTML);
+
+  var controlsContainer = padOuter.find("#contextButtonsContainer")
+  var select = controlsContainer.find(".context-selection");
+  var controls = controlsContainer.find("#contextArrow");
+
+  $(select).change(function(contextValue){
+    var newValue = $(select).val();
+    context.ace.callWithAce(function(ace){
+      ace.ace_doContext(newValue);
+    },'context' , true);
+  });
+
+  context.ace.callWithAce(function(ace){
+    var doc = ace.ace_getDocument();
+
+    // On line click..
+    $(doc).on("click", "div", function(e){
+      // Get the offset of the click
+      var offset = e.currentTarget.offsetTop + (e.currentTarget.offsetHeight/2);
+      // Show some buttons at this offset
+      var lineNumber = $(e.currentTarget).prevAll().length;
+      controlsContainer.show();
+      controls.css("top", offset+"px");
+      controls.data("lineNumber", lineNumber);
+      $(select).hide();
+    });
+
+    // On click of arrow show the select options to change context
+    $('iframe[name="ace_outer"]').contents().find('#outerdocbody').on("click", "#contextArrow", function(e){
+      var lineNumber = $(e.currentTarget).data("lineNumber");
+      var offset = e.currentTarget.offsetTop + (e.currentTarget.offsetHeight/2) + 5;
+      select.css("position", "absolute");
+      select.css("top", offset+"px");
+      select.data("lineNumber", lineNumber);
+      $(select).show();
+    });
+
+  }, 'context', true);
+
 };
 
 // Show the active Context
@@ -107,9 +159,43 @@ exports.aceEditEvent = function(hook, call, cb){
   setTimeout(function(){ // avoid race condition..
     getLastContext(call, function(lastContext){
       // Show this context as being enabled.
-      $('#context-selection').val(lastContext);
+      $('.context-selection').val(lastContext);
     });
   },250);
+
+  // If the text has changed in the pad I need to redraw the top of the select and the left arrow
+
+  // COMMENTED OUT: This is because this logic actually makes the UX way worst as your select can move away from your cursor position
+  var controlsContainer = $('iframe[name="ace_outer"]').contents().find('#outerdocbody').find("#contextButtonsContainer")
+  var select = controlsContainer.find(".context-selection");
+  var controls = controlsContainer.find("#contextArrow");
+
+/*
+  // Does controls have a line Attr?
+  var lineNumber = controls.data("lineNumber");
+  if(lineNumber){
+    // Oh it does, then we better redraw the top of that shit.
+    // Firstly we need the actual line
+    var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
+    var padInner = padOuter.find('iframe[name="ace_inner"]').contents();
+    var line = padInner.find("#innerdocbody > div:nth-child("+lineNumber+")");
+    var offset = line[0].offsetTop + (line[0].offsetHeight/2);
+    // better do some math on that offset again..
+    console.log("changing offset top to ", offset+"px");
+    controls.css("top", offset+"px");
+  }
+*/
+
+  // It looks like we should check to see if this section has this attribute
+  setTimeout(function(){ // avoid race condition..
+    getLastContext(call, function(lastContext){
+      // Show this context as being enabled.
+      select.val(lastContext); // side
+      $('.context-selection').val(lastContext); // top
+    });
+  },250);
+	
+    
 }
 
 /*****
@@ -244,6 +330,7 @@ function cleanArray(actual){
 // so you don't get double line enters as the attributes are atetmpted to be added
 // before the DOM is redrawn
 exports.aceKeyEvent = function(hook, e){
+  $('iframe[name="ace_outer"]').contents().find('#contextButtonsContainer').hide();
   if(e.evt.keyCode !== 13){
     clientVars.plugins.plugins.ep_context.crudeEnterCounter = 0;
   }
