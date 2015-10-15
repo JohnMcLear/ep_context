@@ -215,7 +215,6 @@ exports.aceAttribsToClasses = function(hook, context){
 exports.aceRegisterBlockElements = function(){
   var styleArr = [];
   $.each(styles, function(k,v){
-console.log(v);
     styleArr.push("context"+v.toLowerCase());
   });
   return styleArr;
