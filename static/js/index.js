@@ -146,8 +146,9 @@ exports.aceEditEvent = function(hook, call, cb){
         return true;
       }else{ // first enter will keep the attribute
         // Make sure the line doesn't have any content in already
-        var blankLine = call.rep.alines[thisLine] === "*0|1+1";
-        if(!blankLine) return;
+// This bit appears to be broken, todo
+//        var blankLine = (call.rep.alines[thisLine] === "*0|1+1");
+//        if(!blankLine) return;
         documentAttributeManager.setAttributeOnLine(thisLine, 'context', attributes);
       }
       clientVars.plugins.plugins.ep_context.crudeEnterCounter++;
@@ -214,6 +215,7 @@ exports.aceAttribsToClasses = function(hook, context){
 exports.aceRegisterBlockElements = function(){
   var styleArr = [];
   $.each(styles, function(k,v){
+console.log(v);
     styleArr.push("context"+v.toLowerCase());
   });
   return styleArr;
