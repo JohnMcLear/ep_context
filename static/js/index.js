@@ -18,7 +18,10 @@ var stylesCSS = ["contextparagraph{margin-left:10px;color:green;}",
 
 var stylesCSS = [
   "contexttitle{text-align:center;display:block;font-size:18px;line-height:36px;}",
-  "contextwhereas::before{content: 'Whereas '}"
+  "contextwhereas::before{content: 'Whereas '}",
+  "lastLineButton > button::before{content: '+'};",
+  "lastLineButton > button{ width:100%;}",
+  "lastLineButton{width:100%;}"
 ];
 
 
@@ -59,6 +62,7 @@ exports.postAceInit = function(hook, context){
   var buttonsHTML = '<div id="contextArrow" style="position:absolute;cursor:pointer;border:solid 1px black;padding:0px 2px 0px 2px" unselectable="on">></div>';
   var optionsHTML = $('.context').html();
   var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
+  var padInner = padOuter.contents().find('#innerdocbody');
 
   // Add control stuff to the UI
   padOuter.find("#sidediv").after(contextControlsContainerHTML);
@@ -91,6 +95,23 @@ exports.postAceInit = function(hook, context){
       $(select).hide();
     });
 
+    // On Big + button click create a new line
+    $(doc).on("click", "lastLineButton", function(e){
+      context.ace.callWithAce(function(ace){
+        rep = ace.ace_getRep();
+
+        // We have to figure out # of lines..
+        var padLength = rep.lines.length();
+
+        // Create the new line break
+        ace.ace_replaceRange([padLength,0], [padLength,0], "\n");
+        // Above is right..  But fucks up other editors on the page..
+
+        // Move Caret to newline
+        ace.ace_performSelectionChange([padLength+1,0],[padLength+1,0])
+      },'context' , true);
+    });
+
     // On click of arrow show the select options to change context
     $('iframe[name="ace_outer"]').contents().find('#outerdocbody').on("click", "#contextArrow", function(e){
       var lineNumber = $(e.currentTarget).data("lineNumber");
@@ -111,47 +132,68 @@ exports.aceEditEvent = function(hook, call, cb){
   var cs = call.callstack;
   var rep = call.rep;
   var documentAttributeManager = call.documentAttributeManager;
+
   if(!(cs.type == "handleClick") && !(cs.type == "handleKeyEvent") && !(cs.docTextChanged)){
     return false;
   }
   // If it's an initial setup event then do nothing..
   if(cs.type == "setBaseText" || cs.type == "setup") return false;
-
   // Enter key pressed so new line, I don't think this will support a lot of edge cases IE pasting
-  if(cs.docTextChanged === true && cs.domClean === true && cs.repChanged === true && cs.type === "handleKeyEvent"){
+  if(cs.docTextChanged === true && cs.domClean === true && cs.repChanged === true && (cs.type === "handleKeyEvent" || cs.type === "context")){ 
     var lastLine = rep.selStart[0]-1;
     var thisLine = rep.selEnd[0];
+
+    var padLength = rep.lines.length();
+    var i = 0;
+
+    // Get each line
+    while (i <= padLength){
+      // Remove lastLineButton Attribute
+      documentAttributeManager.removeAttributeOnLine(i, 'lastLineButton');
+      // On Last Line add the attribute
+      if(i == (padLength-1)){
+        documentAttributeManager.setAttributeOnLine(i, 'lastLineButton', true);
+      }
+      i++;
+    };
 
     // This should only fire on a new line, at the moment it fires on a new tab!
     var attributes = documentAttributeManager.getAttributeOnLine(lastLine, 'context');
     if(attributes){
-      // The line did have attributes so set them on the new line
-      // But before we apply a new attribute we should see if we're supposed to be dropping an context layer
-      if(clientVars.plugins.plugins.ep_context.crudeEnterCounter >= 1){
-        var split = attributes.split("$");
-        // remove it and recreate new string
-        if(split.length > 1){
-          attributes = split.slice(0, split.length - 1).join("$");
+      // First thing first we are seeing if its a big button push
+      if(cs.type === "context"){
+        // console.log("set", thisLine, attributes);
+        documentAttributeManager.setAttributeOnLine(padLength-2, 'context', attributes);
+        // Now we need to move caret to here..
+      }else{
+        // The line did have attributes so set them on the new line
+        // But before we apply a new attribute we should see if we're supposed to be dropping an context layer
+        if(clientVars.plugins.plugins.ep_context.crudeEnterCounter >= 1){
+          var split = attributes.split("$");
+          // remove it and recreate new string
+          if(split.length > 1){
+            attributes = split.slice(0, split.length - 1).join("$");
+            documentAttributeManager.setAttributeOnLine(thisLine, 'context', attributes);
+            // remove on previous line too
+            documentAttributeManager.setAttributeOnLine(thisLine-1, 'context', attributes);
+          }else{
+            // no more attributes left so remove it
+            // documentAttributeManager.setAttributeOnLine(thisLine, 'context', ['null']);
+            documentAttributeManager.removeAttributeOnLine(thisLine, 'context');
+            // remove on previous line too	
+            // documentAttributeManager.setAttributeOnLine(thisLine-1, 'context', ['null']);
+            documentAttributeManager.removeAttributeOnLine(thisLine-1, 'context');
+          }
+          return true;
+        }else{ // first enter will keep the attribute
+          // Make sure the line doesn't have any content in already
+          // This bit appears to be broken, todo
+          // var blankLine = (call.rep.alines[thisLine] === "*0|1+1");
+          // if(!blankLine) return;
           documentAttributeManager.setAttributeOnLine(thisLine, 'context', attributes);
-          // remove on previous line too
-          documentAttributeManager.setAttributeOnLine(thisLine-1, 'context', attributes);
-        }else{
-          // no more attributes left so remove it
-          // documentAttributeManager.setAttributeOnLine(thisLine, 'context', ['null']);
-          documentAttributeManager.removeAttributeOnLine(thisLine, 'context');
-          // remove on previous line too	
-          // documentAttributeManager.setAttributeOnLine(thisLine-1, 'context', ['null']);
-          documentAttributeManager.removeAttributeOnLine(thisLine-1, 'context');
         }
-        return true;
-      }else{ // first enter will keep the attribute
-        // Make sure the line doesn't have any content in already
-// This bit appears to be broken, todo
-//        var blankLine = (call.rep.alines[thisLine] === "*0|1+1");
-//        if(!blankLine) return;
-        documentAttributeManager.setAttributeOnLine(thisLine, 'context', attributes);
+        clientVars.plugins.plugins.ep_context.crudeEnterCounter++;
       }
-      clientVars.plugins.plugins.ep_context.crudeEnterCounter++;
       return true;
     }
   }
@@ -175,14 +217,14 @@ exports.aceEditEvent = function(hook, call, cb){
   // Does controls have a line Attr?
   var lineNumber = controls.data("lineNumber");
   if(lineNumber){
-    // Oh it does, then we better redraw the top of that shit.
+    // Oh it does, then we better redraw the top of it.
     // Firstly we need the actual line
     var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
     var padInner = padOuter.find('iframe[name="ace_inner"]').contents();
     var line = padInner.find("#innerdocbody > div:nth-child("+lineNumber+")");
     var offset = line[0].offsetTop + (line[0].offsetHeight/2);
     // better do some math on that offset again..
-    console.log("changing offset top to ", offset+"px");
+    // console.log("changing offset top to ", offset+"px");
     controls.css("top", offset+"px");
   }
 */
@@ -206,14 +248,22 @@ exports.aceEditEvent = function(hook, call, cb){
 // Our sup/subscript attribute will result in a class
 // I'm not sure if this is actually required..
 exports.aceAttribsToClasses = function(hook, context){
+  var classes = [];
   if(context.key == 'context'){
-    return ["context:"+context.value];
+    classes.push("context:"+context.value);
   }
+  if(context.key == 'lastLineButton'){
+    classes.push("lastLineButton");
+  }
+  return classes;
 }
 
 // Block elements - Prevents character walking
 exports.aceRegisterBlockElements = function(){
   var styleArr = [];
+
+  styleArr.push("lastLineButton"); // Might not be required?
+
   $.each(styles, function(k,v){
     styleArr.push("context"+v.toLowerCase());
   });
@@ -283,25 +333,36 @@ exports.aceInitialized = function(hook, context){
 
 // Here we convert the class context:x into a tag
 exports.aceDomLineProcessLineAttributes = function(name, context){
-  var contexts = /context:(.*?) /i.exec(context.cls);
-  if(!contexts) return [];
-  var tags = contexts[1];
-  tags = tags.split("$");
   var preHtml = "";
   var postHtml = "";
   var processed = false;
-  $.each(tags, function(i, tag){
-    if(tag.substring(0,7) === "context"){
-      // on paste we have the correct context defined so we need to modify it back to the tag
-      tag = tag.substring(7,tag.length); // cake
-      tag = tag.charAt(0).toUpperCase() + tag.slice(1);
-    }
-    if(styles.indexOf(tag) !== -1){
-      preHtml += '<context' + tag + ' class="context">';
-      postHtml += '</context' + tag + ' class="context">';
-      processed = true;
-    }
-  });
+
+  if(context.cls.indexOf("lastLineButton") !== -1){
+    postHtml = "<lastLineButton selectable=false><button></button></lastLineButton>";
+    processed = true;
+  }
+
+  var contexts = /context:(.*?) /i.exec(context.cls);
+  if(!contexts && !processed) return [];
+  if(contexts){
+    var tags = contexts[1];
+    tags = tags.split("$");
+
+    $.each(tags, function(i, tag){
+      if(tag.substring(0,7) === "context"){
+        // on paste we have the correct context defined so we need to modify it back to the tag
+        tag = tag.substring(7,tag.length); // cake
+        tag = tag.charAt(0).toUpperCase() + tag.slice(1);
+      }
+      if(styles.indexOf(tag) !== -1){
+        preHtml += '<context' + tag + ' class="context">';
+        postHtml += '</context' + tag + ' class="context">';
+        processed = true;
+      }
+    });
+  }
+
+
   if(processed){
     var modifier = {
       preHtml: preHtml,
