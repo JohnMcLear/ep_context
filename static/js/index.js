@@ -85,6 +85,10 @@ exports.postAceInit = function(hook, context){
 
     // On line click show the little arrow :)
     $(doc).on("click", "div", function(e){
+      // We shouldn't show these controls if we're clicking on the big button..
+      var isLastLineButton = $(this).find("lastlinebutton");
+      if(isLastLineButton.length === 1) return;
+
       // Get the offset of the click
       var offset = e.currentTarget.offsetTop + (e.currentTarget.offsetHeight/2);
       // Show some buttons at this offset
@@ -96,7 +100,6 @@ exports.postAceInit = function(hook, context){
     });
 
     // On Big + button click create a new line
-/*
     $(doc).on("click", "lastLineButton", function(e){
       context.ace.callWithAce(function(ace){
         rep = ace.ace_getRep();
@@ -105,14 +108,14 @@ exports.postAceInit = function(hook, context){
         var padLength = rep.lines.length();
 
         // Create the new line break
-        ace.ace_replaceRange([padLength-1,0], [padLength-1,0], "\n");
+        ace.ace_replaceRange([padLength,0], [padLength,0], "\n");
         // Above is right..  But fucks up other editors on the page..
 
         // Move Caret to newline
-        ace.ace_performSelectionChange([padLength+1,0],[padLength+1,0])
+        ace.ace_performSelectionChange([padLength,0],[padLength,0])
+        ace.ace_focus();
       },'context' , true);
     });
-*/
 
     // On click of arrow show the select options to change context
     $('iframe[name="ace_outer"]').contents().find('#outerdocbody').on("click", "#contextArrow", function(e){
@@ -163,10 +166,8 @@ function reDrawLastLineButton(cs, documentAttributeManager, rep){
     // Remove lastLineButton Attribute
     // On Last Line add the attribute
     if(i == ( padLength -1 ) && i !== 0){
-      console.log("Set");
       documentAttributeManager.setAttributeOnLine(i, 'lastLineButton', true);
     }else{
-      console.log("removed", i, padLength);
       documentAttributeManager.removeAttributeOnLine(i, 'lastLineButton');
     }
     i++;
@@ -186,8 +187,14 @@ exports.aceEditEvent = function(hook, call, cb){
 
   // If it's an initial setup event then set the last line button
   if(cs.type == "setBaseText" || cs.type == "setup"){
-//    reDrawLastLineButton(cs, documentAttributeManager, rep);
+    reDrawLastLineButton(cs, documentAttributeManager, rep);
   }
+
+  // reDrawLastLineButton on an edit event..  This may actually be too deeply nested but let's see..
+  if(cs.docTextChanged){
+    reDrawLastLineButton(cs, documentAttributeManager, rep);
+  }
+	
 
   if(cs.docTextChanged === true && cs.domClean === true && cs.repChanged === true && (cs.type === "handleKeyEvent" || cs.type === "context")){ 
     var lastLine = rep.selStart[0]-1;
@@ -200,7 +207,7 @@ exports.aceEditEvent = function(hook, call, cb){
     if(attributes){
       // First thing first we are seeing if its a big button push
       if(cs.type === "context"){
-        // console.log("set", thisLine, attributes);
+        console.log("set", thisLine, attributes);
         documentAttributeManager.setAttributeOnLine(padLength-2, 'context', attributes);
         // Now we need to move caret to here..
       }else{
@@ -232,8 +239,6 @@ exports.aceEditEvent = function(hook, call, cb){
         }
         clientVars.plugins.plugins.ep_context.crudeEnterCounter++;
       }
-
-      // reDrawLastLineButton(cs, documentAttributeManager, rep);
       return true;
     }
   }
