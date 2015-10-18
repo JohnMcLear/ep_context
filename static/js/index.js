@@ -58,8 +58,8 @@ exports.postAceInit = function(hook, context){
     },'context' , true);
   });
 
-  var contextControlsContainerHTML = '<div id="contextButtonsContainer" style="display:block;z-index:1;margin-left:100px;"></div>';
-  var buttonsHTML = '<div id="contextArrow" style="position:absolute;cursor:pointer;border:solid 1px black;padding:0px 2px 0px 2px" unselectable="on">></div>';
+  var contextControlsContainerHTML = '<div id="contextButtonsContainer" style="display:block;z-index:1;margin-left:80px;"></div>';
+  var buttonsHTML = '<div id="newLineButton" style="position:absolute; cursor:pointer; border:solid 1px black; padding: 0px 2px 0px 2px; margin-left:20px;" unselectable="on">+</div><div id="contextArrow" style="position:absolute;cursor:pointer;border:solid 1px black;padding:0px 2px 0px 2px" unselectable="on">></div>';
   var optionsHTML = $('.context').html();
   var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
   var padInner = padOuter.contents().find('#innerdocbody');
@@ -71,7 +71,7 @@ exports.postAceInit = function(hook, context){
 
   var controlsContainer = padOuter.find("#contextButtonsContainer")
   var select = controlsContainer.find(".context-selection");
-  var controls = controlsContainer.find("#contextArrow");
+  var controls = controlsContainer.find("#contextArrow, #newLineButton");
 
   $(select).change(function(contextValue){
     var newValue = $(select).val();
@@ -83,7 +83,7 @@ exports.postAceInit = function(hook, context){
   context.ace.callWithAce(function(ace){
     var doc = ace.ace_getDocument();
 
-    // On line click..
+    // On line click show the little arrow :)
     $(doc).on("click", "div", function(e){
       // Get the offset of the click
       var offset = e.currentTarget.offsetTop + (e.currentTarget.offsetHeight/2);
@@ -96,6 +96,7 @@ exports.postAceInit = function(hook, context){
     });
 
     // On Big + button click create a new line
+/*
     $(doc).on("click", "lastLineButton", function(e){
       context.ace.callWithAce(function(ace){
         rep = ace.ace_getRep();
@@ -104,13 +105,14 @@ exports.postAceInit = function(hook, context){
         var padLength = rep.lines.length();
 
         // Create the new line break
-        ace.ace_replaceRange([padLength,0], [padLength,0], "\n");
+        ace.ace_replaceRange([padLength-1,0], [padLength-1,0], "\n");
         // Above is right..  But fucks up other editors on the page..
 
         // Move Caret to newline
         ace.ace_performSelectionChange([padLength+1,0],[padLength+1,0])
       },'context' , true);
     });
+*/
 
     // On click of arrow show the select options to change context
     $('iframe[name="ace_outer"]').contents().find('#outerdocbody').on("click", "#contextArrow", function(e){
@@ -122,9 +124,54 @@ exports.postAceInit = function(hook, context){
       $(select).show();
     });
 
-  }, 'context', true);
 
+    // On click of left + icon create a new line below exisiting line
+    $('iframe[name="ace_outer"]').contents().find('#outerdocbody').on("click", "#newLineButton", function(e){
+      var lineNumber = $(e.currentTarget).data("lineNumber");
+      var newLineNumber = lineNumber+1;
+
+      // console.log("Creating new line under", lineNumber);
+      // Create the new line break
+      ace.ace_replaceRange([lineNumber+1,0], [lineNumber+1,0], "\n");
+
+      // Take the previous line context and apply it to this line..
+      // Get the context first..
+      var attr = ace.ace_getLineContext(lineNumber);
+
+      context.ace.callWithAce(function(ace){
+        rep = ace.ace_getRep();
+        // We have to figure out # of lines..
+        var padLength = rep.lines.length();
+        // Above is right..  But fucks up other editors on the page..
+        ace.ace_performSelectionChange([newLineNumber,0],[newLineNumber,0])
+        ace.ace_focus();
+        ace.ace_doContext(attr);
+      }, 'selChange', true);
+
+      controlsContainer.hide();
+    });
+
+  }, 'context', true);
 };
+
+function reDrawLastLineButton(cs, documentAttributeManager, rep){
+
+  var padLength = rep.lines.length();
+  var i = 0;
+  // Get each line
+  while (i <= padLength){
+    // Remove lastLineButton Attribute
+    // On Last Line add the attribute
+    if(i == ( padLength -1 ) && i !== 0){
+      console.log("Set");
+      documentAttributeManager.setAttributeOnLine(i, 'lastLineButton', true);
+    }else{
+      console.log("removed", i, padLength);
+      documentAttributeManager.removeAttributeOnLine(i, 'lastLineButton');
+    }
+    i++;
+  };
+}
 
 // Show the active Context
 exports.aceEditEvent = function(hook, call, cb){
@@ -136,29 +183,20 @@ exports.aceEditEvent = function(hook, call, cb){
   if(!(cs.type == "handleClick") && !(cs.type == "handleKeyEvent") && !(cs.docTextChanged)){
     return false;
   }
-  // If it's an initial setup event then do nothing..
-  if(cs.type == "setBaseText" || cs.type == "setup") return false;
-  // Enter key pressed so new line, I don't think this will support a lot of edge cases IE pasting
+
+  // If it's an initial setup event then set the last line button
+  if(cs.type == "setBaseText" || cs.type == "setup"){
+//    reDrawLastLineButton(cs, documentAttributeManager, rep);
+  }
+
   if(cs.docTextChanged === true && cs.domClean === true && cs.repChanged === true && (cs.type === "handleKeyEvent" || cs.type === "context")){ 
     var lastLine = rep.selStart[0]-1;
     var thisLine = rep.selEnd[0];
-
     var padLength = rep.lines.length();
-    var i = 0;
-
-    // Get each line
-    while (i <= padLength){
-      // Remove lastLineButton Attribute
-      documentAttributeManager.removeAttributeOnLine(i, 'lastLineButton');
-      // On Last Line add the attribute
-      if(i == (padLength-1)){
-        documentAttributeManager.setAttributeOnLine(i, 'lastLineButton', true);
-      }
-      i++;
-    };
 
     // This should only fire on a new line, at the moment it fires on a new tab!
     var attributes = documentAttributeManager.getAttributeOnLine(lastLine, 'context');
+
     if(attributes){
       // First thing first we are seeing if its a big button push
       if(cs.type === "context"){
@@ -194,6 +232,8 @@ exports.aceEditEvent = function(hook, call, cb){
         }
         clientVars.plugins.plugins.ep_context.crudeEnterCounter++;
       }
+
+      // reDrawLastLineButton(cs, documentAttributeManager, rep);
       return true;
     }
   }
@@ -326,12 +366,26 @@ function getLastContext(context, cb){
   });
 }
 
+// Get the full context of a line
+function getLineContext(lineNumber){
+  var documentAttributeManager = this.documentAttributeManager;
+  // Does range already have attribute?
+  var attributes = documentAttributeManager.getAttributeOnLine(lineNumber, 'context');
+  // take last attribute from attributes, split it
+  var split = attributes.split("$");
+  // clean empty values
+  split = cleanArray(split);
+  var lastContext = split[split.length-1];
+  return lastContext;
+}
+
 exports.aceInitialized = function(hook, context){
   var editorInfo = context.editorInfo;
   editorInfo.ace_doContext = _(doContext).bind(context);
+  editorInfo.ace_getLineContext = _(getLineContext).bind(context);
 }
 
-// Here we convert the class context:x into a tag
+// Here we convert the class context:x into a tag 
 exports.aceDomLineProcessLineAttributes = function(name, context){
   var preHtml = "";
   var postHtml = "";
