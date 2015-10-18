@@ -106,7 +106,6 @@ exports.postAceInit = function(hook, context){
 
         // We have to figure out # of lines..
         var padLength = rep.lines.length();
-
         // Create the new line break
         ace.ace_replaceRange([padLength,0], [padLength,0], "\n");
         // Above is right..  But fucks up other editors on the page..
@@ -159,6 +158,9 @@ exports.postAceInit = function(hook, context){
 
 function reDrawLastLineButton(cs, documentAttributeManager, rep){
 
+// This is buggy as fsk, needs a lot of TLC
+
+/*
   var padLength = rep.lines.length();
   var i = 0;
   // Get each line
@@ -166,12 +168,14 @@ function reDrawLastLineButton(cs, documentAttributeManager, rep){
     // Remove lastLineButton Attribute
     // On Last Line add the attribute
     if(i == ( padLength -1 ) && i !== 0){
-      documentAttributeManager.setAttributeOnLine(i, 'lastLineButton', true);
+      documentAttributeManager.setAttributeOnLine(i, 'lastLineButton', true)
     }else{
       documentAttributeManager.removeAttributeOnLine(i, 'lastLineButton');
     }
     i++;
   };
+*/
+
 }
 
 // Show the active Context
@@ -185,16 +189,10 @@ exports.aceEditEvent = function(hook, call, cb){
     return false;
   }
 
-  // If it's an initial setup event then set the last line button
-  if(cs.type == "setBaseText" || cs.type == "setup"){
-    reDrawLastLineButton(cs, documentAttributeManager, rep);
-  }
-
   // reDrawLastLineButton on an edit event..  This may actually be too deeply nested but let's see..
   if(cs.docTextChanged){
-    reDrawLastLineButton(cs, documentAttributeManager, rep);
+//    reDrawLastLineButton(cs, documentAttributeManager, rep);
   }
-	
 
   if(cs.docTextChanged === true && cs.domClean === true && cs.repChanged === true && (cs.type === "handleKeyEvent" || cs.type === "context")){ 
     var lastLine = rep.selStart[0]-1;
@@ -207,7 +205,7 @@ exports.aceEditEvent = function(hook, call, cb){
     if(attributes){
       // First thing first we are seeing if its a big button push
       if(cs.type === "context"){
-        console.log("set", thisLine, attributes);
+        // console.log("set", thisLine, attributes);
         documentAttributeManager.setAttributeOnLine(padLength-2, 'context', attributes);
         // Now we need to move caret to here..
       }else{
@@ -331,23 +329,25 @@ function doContext(level){
   _(_.range(firstLine, lastLine + 1)).each(function(i){
     // Does range already have attribute?
     var attributes = documentAttributeManager.getAttributeOnLine(i, 'context');
-    // are attempting to remove a line attribute?
-    if(level === "dummy"){
-      // take last attribute from attributes, split it
-      var split = attributes.split("$");
-      // remove it and recreate new string
-      attributes = split.slice(0, split.length - 2).join("$");
-    }else{
-      if(attributes){
-        attributes = attributes + "$" + level
+    if(attributes || level){
+      // are attempting to remove a line attribute?
+      if(level === "dummy"){
+        // take last attribute from attributes, split it
+        var split = attributes.split("$");
+        // remove it and recreate new string
+        attributes = split.slice(0, split.length - 2).join("$");
       }else{
-        attributes = level;
+        if(attributes){
+          attributes = attributes + "$" + level
+        }else{
+          attributes = level;
+        }
       }
-    }
-    if(attributes.length > 1){
-      documentAttributeManager.setAttributeOnLine(i, 'context', attributes);
-    }else{
-      documentAttributeManager.removeAttributeOnLine(i, 'context');
+      if(attributes.length > 1){
+        documentAttributeManager.setAttributeOnLine(i, 'context', attributes);
+      }else{
+        documentAttributeManager.removeAttributeOnLine(i, 'context');
+      }
     }
   });
 }
