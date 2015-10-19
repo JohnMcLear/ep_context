@@ -107,7 +107,8 @@ exports.postAceInit = function(hook, context){
         // We have to figure out # of lines..
         var padLength = rep.lines.length();
         // Create the new line break
-        ace.ace_replaceRange([padLength,0], [padLength,0], "\n");
+        var lineLength = rep.lines.atIndex(padLength-1).text.length;
+        ace.ace_replaceRange([padLength-1,lineLength], [padLength-1,lineLength], "\n");
         // Above is right..  But fucks up other editors on the page..
 
         // Move Caret to newline
