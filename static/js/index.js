@@ -281,9 +281,16 @@ exports.aceEditEvent = function(hook, call, cb){
   // It looks like we should check to see if this section has this attribute
   setTimeout(function(){ // avoid race condition..
     getLastContext(call, function(lastContext){
-      // Show this context as being enabled.
-      select.val(lastContext); // side
-      $('.context-selection').val(lastContext); // top
+      if(!lastContext){ // No context set so set to dummy
+        $('.context-selection').val("dummy"); // top
+        select.val("dummy"); // side
+      }else{
+        // Show this context as being enabled.
+        lastContext = lastContext.replace("context","");
+        lastContext = lastContext.charAt(0).toUpperCase() + lastContext.slice(1);
+        select.val(lastContext); // side
+        $('.context-selection').val(lastContext); // top
+      }
     });
   },250);
 	
