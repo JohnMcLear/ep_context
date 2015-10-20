@@ -56,7 +56,9 @@ exports.postAceInit = function(hook, context){
   });
 
   var contextControlsContainerHTML = '<div id="contextButtonsContainer" style="display:block;z-index:1;margin-left:80px;"></div>';
-  var buttonsHTML = '<div id="newLineButton" style="position:absolute; cursor:pointer; border:solid 1px black; padding: 0px 2px 0px 2px; margin-left:20px;" unselectable="on">+</div><div id="contextArrow" style="position:absolute;cursor:pointer;border:solid 1px black;padding:0px 2px 0px 2px" unselectable="on">></div>';
+  var buttonsHTML = '<div id="newLineButton" style="position:absolute; cursor:pointer; border:solid 1px black; padding: 0px 2px 0px 2px; margin-left:30px;" unselectable="on">+</div>';
+  buttonsHTML += '<div id="contextArrow" style="position:absolute;cursor:pointer;border:solid 1px black;padding:0px 2px 0px 2px" unselectable="on">></div>';
+  buttonsHTML += '<div id="deleteLineButton" style="position:absolute; cursor:pointer; border:solid 1px black; padding: 0px 4px 0px 4px; margin-left:15px;" unselectable="on">-</div>';
   var bigButtonHTML = '<button id="bigNewLineButton" style="width:650px;position:absolute;top:0;left:auto;margin-left:133px">+</button>';
   var optionsHTML = $('.context').html();
   var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
@@ -70,7 +72,7 @@ exports.postAceInit = function(hook, context){
 
   var controlsContainer = padOuter.find("#contextButtonsContainer")
   var select = controlsContainer.find(".context-selection");
-  var controls = controlsContainer.find("#contextArrow, #newLineButton");
+  var controls = controlsContainer.find("#contextArrow, #newLineButton, #deleteLineButton");
 
   $(select).change(function(contextValue){
     var newValue = $(select).val();
@@ -155,6 +157,18 @@ exports.postAceInit = function(hook, context){
         ace.ace_focus();
         ace.ace_doContext(attr);
       }, 'selChange', true);
+
+      controlsContainer.hide();
+    });
+
+    // On click of left + icon create a new line below exisiting line
+    $('iframe[name="ace_outer"]').contents().find('#outerdocbody').on("click", "#deleteLineButton", function(e){
+      var lineNumber = $(e.currentTarget).data("lineNumber");
+      var newLineNumber = lineNumber+1;
+
+      // console.log("Deleting line under", lineNumber);
+      // Create the new line break
+      ace.ace_replaceRange([lineNumber,0], [newLineNumber,0], "");
 
       controlsContainer.hide();
     });
