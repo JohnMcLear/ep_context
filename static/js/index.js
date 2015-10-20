@@ -18,10 +18,7 @@ var stylesCSS = ["contextparagraph{margin-left:10px;color:green;}",
 
 var stylesCSS = [
   "contexttitle{text-align:center;display:block;font-size:18px;line-height:36px;}",
-  "contextwhereas::before{content: 'Whereas '}",
-  "lastLineButton > button::before{content: '+'};",
-  "lastLineButton > button{ width:100%; display:block;}",
-  "lastLineButton{ width:100%; display:block;}"
+  "contextwhereas::before{content: 'Whereas '}"
 ];
 
 
@@ -60,11 +57,13 @@ exports.postAceInit = function(hook, context){
 
   var contextControlsContainerHTML = '<div id="contextButtonsContainer" style="display:block;z-index:1;margin-left:80px;"></div>';
   var buttonsHTML = '<div id="newLineButton" style="position:absolute; cursor:pointer; border:solid 1px black; padding: 0px 2px 0px 2px; margin-left:20px;" unselectable="on">+</div><div id="contextArrow" style="position:absolute;cursor:pointer;border:solid 1px black;padding:0px 2px 0px 2px" unselectable="on">></div>';
+  var bigButtonHTML = '<button id="bigNewLineButton" style="width:650px;position:absolute;top:0;left:auto;margin-left:133px">+</button>';
   var optionsHTML = $('.context').html();
   var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
   var padInner = padOuter.contents().find('#innerdocbody');
 
   // Add control stuff to the UI
+  padOuter.find("#sidediv").after(bigButtonHTML);
   padOuter.find("#sidediv").after(contextControlsContainerHTML);
   padOuter.find("#contextButtonsContainer").html(buttonsHTML);
   padOuter.find("#contextButtonsContainer").append(optionsHTML);
@@ -85,10 +84,6 @@ exports.postAceInit = function(hook, context){
 
     // On line click show the little arrow :)
     $(doc).on("click", "div", function(e){
-      // We shouldn't show these controls if we're clicking on the big button..
-      var isLastLineButton = $(this).find("lastlinebutton");
-      if(isLastLineButton.length === 1) return;
-
       // Get the offset of the click
       var offset = e.currentTarget.offsetTop + (e.currentTarget.offsetHeight/2);
       // Show some buttons at this offset
@@ -100,7 +95,7 @@ exports.postAceInit = function(hook, context){
     });
 
     // On Big + button click create a new line
-    $(doc).on("click", "lastLineButton", function(e){
+    $(padOuter).on("click", "#bigNewLineButton", function(e){
       context.ace.callWithAce(function(ace){
         rep = ace.ace_getRep();
 
@@ -112,15 +107,21 @@ exports.postAceInit = function(hook, context){
         ace.ace_replaceRange([padLength-1,lineLength], [padLength-1,lineLength], "\n");
 
         // Get the previous line context
+        // The bug here is that two new lines are created on most events
         var context = ace.ace_getLineContext(padLength-1);
-        console.log(context);
+        if(!context) context = ace.ace_getLineContext(padLength-2);
 
-        // Set the new line context
-        // TODO
 
         // Move Caret to newline
         ace.ace_performSelectionChange([padLength,0],[padLength,0])
         ace.ace_focus();
+
+        // Set the new line context
+        if(context){
+        console.log("context", context);
+//          ace.ace_doContext(context);
+        }
+
       },'context' , true);
     });
 
@@ -177,9 +178,15 @@ function reDrawLastLineButton(cs, documentAttributeManager, rep){
   // Check to see if lastLineButton is already in the right place..
   var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
   var padInner = padOuter.find('iframe[name="ace_inner"]').contents();
-  var buttonContainer = padInner.contents().find("lastline").parent();
-  var lineCount = buttonContainer.prevAll().length;
+  var button = padOuter.find('#bigNewLineButton');
+  var div = padInner.contents().find("div").last();
+  var offset = div[0].offsetTop + div[0].offsetHeight + 20;
 
+  // Move the button below this
+  console.log(button, offset);
+  $(button).css("top", offset+"px");
+
+/*
   // Button is currently on line lineCount
   // console.log("button is currently on ", lineCount);
   // console.log("Button should be on ", padLength);
@@ -199,6 +206,7 @@ function reDrawLastLineButton(cs, documentAttributeManager, rep){
     }
     i++;
   };
+  */
 
 }
 
@@ -209,14 +217,15 @@ exports.aceEditEvent = function(hook, call, cb){
   var rep = call.rep;
   var documentAttributeManager = call.documentAttributeManager;
 
+  // reDraw last line button if we're setting up the document or it's changed at all
+  if(cs.type === "setWraps" || cs.docTextChanged){
+    reDrawLastLineButton(cs, documentAttributeManager, rep);
+  }
+
   if(!(cs.type == "handleClick") && !(cs.type == "handleKeyEvent") && !(cs.docTextChanged)){
     return false;
   }
 
-  // reDrawLastLineButton on an edit event..  This may actually be too deeply nested but let's see..
-  if(cs.docTextChanged){
-    reDrawLastLineButton(cs, documentAttributeManager, rep);
-  }
 
   if(cs.docTextChanged === true && cs.domClean === true && cs.repChanged === true && (cs.type === "handleKeyEvent" || cs.type === "context")){ 
     var lastLine = rep.selStart[0]-1;
@@ -319,17 +328,12 @@ exports.aceAttribsToClasses = function(hook, context){
   if(context.key == 'context'){
     classes.push("context:"+context.value);
   }
-  if(context.key == 'lastLineButton'){
-    classes.push("lastlinebutton");
-  }
   return classes;
 }
 
 // Block elements - Prevents character walking
 exports.aceRegisterBlockElements = function(){
   var styleArr = [];
-
-  styleArr.push("lastline"); // Might not be required? -- needed for walking caret
 
   $.each(styles, function(k,v){
     styleArr.push("context"+v.toLowerCase());
@@ -419,12 +423,6 @@ exports.aceDomLineProcessLineAttributes = function(name, context){
   var preHtml = "";
   var postHtml = "";
   var processed = false;
-
-  if(context.cls.indexOf("lastlinebutton") !== -1){
-    preHtml = "<lastline>";
-    postHtml = "\n<lastlinebutton><button></button></lastlinebutton></lastline>";
-    processed = true;
-  }
 
   var contexts = /context:(.*?) /i.exec(context.cls);
   if(!contexts && !processed) return [];
