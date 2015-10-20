@@ -20,8 +20,8 @@ var stylesCSS = [
   "contexttitle{text-align:center;display:block;font-size:18px;line-height:36px;}",
   "contextwhereas::before{content: 'Whereas '}",
   "lastLineButton > button::before{content: '+'};",
-  "lastLineButton > button{ width:100%;}",
-  "lastLineButton{width:100%;}"
+  "lastLineButton > button{ width:100%; display:block;}",
+  "lastLineButton{ width:100%; display:block;}"
 ];
 
 
@@ -104,12 +104,19 @@ exports.postAceInit = function(hook, context){
       context.ace.callWithAce(function(ace){
         rep = ace.ace_getRep();
 
-        // We have to figure out # of lines..
+        // We have to figure out # of lines
         var padLength = rep.lines.length();
+
         // Create the new line break
         var lineLength = rep.lines.atIndex(padLength-1).text.length;
         ace.ace_replaceRange([padLength-1,lineLength], [padLength-1,lineLength], "\n");
-        // Above is right..  But fucks up other editors on the page..
+
+        // Get the previous line context
+        var context = ace.ace_getLineContext(padLength-1);
+        console.log(context);
+
+        // Set the new line context
+        // TODO
 
         // Move Caret to newline
         ace.ace_performSelectionChange([padLength,0],[padLength,0])
@@ -159,23 +166,39 @@ exports.postAceInit = function(hook, context){
 
 function reDrawLastLineButton(cs, documentAttributeManager, rep){
 
-// This is buggy as fsk, needs a lot of TLC
-
-/*
   var padLength = rep.lines.length();
+
+  // This is kinda weird but basically EP stores line #1 as 1 not 0 so we reduce length
+  padLength = padLength-1;
+
+  // padLength is reported as 0 on pad open..  Don't continue
+  if(padLength === 0) return;
+
+  // Check to see if lastLineButton is already in the right place..
+  var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
+  var padInner = padOuter.find('iframe[name="ace_inner"]').contents();
+  var buttonContainer = padInner.contents().find("lastline").parent();
+  var lineCount = buttonContainer.prevAll().length;
+
+  // Button is currently on line lineCount
+  // console.log("button is currently on ", lineCount);
+  // console.log("Button should be on ", padLength);
+ 
+  // Check to see if button is on the same page as the line count
+  if(lineCount === padLength) return;
+
   var i = 0;
   // Get each line
   while (i <= padLength){
     // Remove lastLineButton Attribute
     // On Last Line add the attribute
-    if(i == ( padLength -1 ) && i !== 0){
+    if(i == ( padLength ) && i !== 0){
       documentAttributeManager.setAttributeOnLine(i, 'lastLineButton', true)
     }else{
       documentAttributeManager.removeAttributeOnLine(i, 'lastLineButton');
     }
     i++;
   };
-*/
 
 }
 
@@ -192,7 +215,7 @@ exports.aceEditEvent = function(hook, call, cb){
 
   // reDrawLastLineButton on an edit event..  This may actually be too deeply nested but let's see..
   if(cs.docTextChanged){
-//    reDrawLastLineButton(cs, documentAttributeManager, rep);
+    reDrawLastLineButton(cs, documentAttributeManager, rep);
   }
 
   if(cs.docTextChanged === true && cs.domClean === true && cs.repChanged === true && (cs.type === "handleKeyEvent" || cs.type === "context")){ 
@@ -297,7 +320,7 @@ exports.aceAttribsToClasses = function(hook, context){
     classes.push("context:"+context.value);
   }
   if(context.key == 'lastLineButton'){
-    classes.push("lastLineButton");
+    classes.push("lastlinebutton");
   }
   return classes;
 }
@@ -306,7 +329,7 @@ exports.aceAttribsToClasses = function(hook, context){
 exports.aceRegisterBlockElements = function(){
   var styleArr = [];
 
-  styleArr.push("lastLineButton"); // Might not be required?
+  styleArr.push("lastline"); // Might not be required? -- needed for walking caret
 
   $.each(styles, function(k,v){
     styleArr.push("context"+v.toLowerCase());
@@ -397,8 +420,9 @@ exports.aceDomLineProcessLineAttributes = function(name, context){
   var postHtml = "";
   var processed = false;
 
-  if(context.cls.indexOf("lastLineButton") !== -1){
-    postHtml = "<lastLineButton selectable=false><button></button></lastLineButton>";
+  if(context.cls.indexOf("lastlinebutton") !== -1){
+    preHtml = "<lastline>";
+    postHtml = "\n<lastlinebutton><button></button></lastlinebutton></lastline>";
     processed = true;
   }
 
@@ -422,7 +446,6 @@ exports.aceDomLineProcessLineAttributes = function(name, context){
     });
   }
 
-
   if(processed){
     var modifier = {
       preHtml: preHtml,
@@ -435,6 +458,7 @@ exports.aceDomLineProcessLineAttributes = function(name, context){
   }
 };
 
+// Cleans arrays of duplicates
 function cleanArray(actual){
   var newArray = new Array();
   for(var i = 0; i<actual.length; i++){
@@ -457,3 +481,4 @@ exports.aceKeyEvent = function(hook, e){
     clientVars.plugins.plugins.ep_context.crudeEnterCounter = 0;
   }
 }
+

@@ -11,6 +11,9 @@ exports.collectContentPre = function(hook, context){
   if(supportedContexts.indexOf(tname) !== -1){
     lineAttributes['context'] = tname;
   }
+
+  // Probably not needed
+  // lineAttributes['lastlinebutton'] = true;
 };
 
 exports.collectContentPost = function(hook, context){
@@ -20,4 +23,8 @@ exports.collectContentPost = function(hook, context){
   if(supportedContexts.indexOf(tname) !== -1){
     delete lineAttributes['context'];
   }
+
+  // Probably not needed
+  // lineAttributes['lastlinebutton'] = true;
+
 };
