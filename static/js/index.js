@@ -375,7 +375,11 @@ function doContext(level){
       }
     }
 */
-    documentAttributeManager.setAttributeOnLine(i, 'context', level);
+    if(level === "dummy"){
+      documentAttributeManager.removeAttributeOnLine(i, 'context');
+    }else{
+      documentAttributeManager.setAttributeOnLine(i, 'context', level);
+    }
   });
 }
 
