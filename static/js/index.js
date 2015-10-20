@@ -107,10 +107,7 @@ exports.postAceInit = function(hook, context){
         ace.ace_replaceRange([padLength-1,lineLength], [padLength-1,lineLength], "\n");
 
         // Get the previous line context
-        // The bug here is that two new lines are created on most events
         var context = ace.ace_getLineContext(padLength-1);
-        if(!context) context = ace.ace_getLineContext(padLength-2);
-
 
         // Move Caret to newline
         ace.ace_performSelectionChange([padLength,0],[padLength,0])
@@ -118,8 +115,8 @@ exports.postAceInit = function(hook, context){
 
         // Set the new line context
         if(context){
-        console.log("context", context);
-//          ace.ace_doContext(context);
+          // console.log("context", context);
+          ace.ace_doContext(context);
         }
 
       },'context' , true);
@@ -183,31 +180,7 @@ function reDrawLastLineButton(cs, documentAttributeManager, rep){
   var offset = div[0].offsetTop + div[0].offsetHeight + 20;
 
   // Move the button below this
-  console.log(button, offset);
   $(button).css("top", offset+"px");
-
-/*
-  // Button is currently on line lineCount
-  // console.log("button is currently on ", lineCount);
-  // console.log("Button should be on ", padLength);
- 
-  // Check to see if button is on the same page as the line count
-  if(lineCount === padLength) return;
-
-  var i = 0;
-  // Get each line
-  while (i <= padLength){
-    // Remove lastLineButton Attribute
-    // On Last Line add the attribute
-    if(i == ( padLength ) && i !== 0){
-      documentAttributeManager.setAttributeOnLine(i, 'lastLineButton', true)
-    }else{
-      documentAttributeManager.removeAttributeOnLine(i, 'lastLineButton');
-    }
-    i++;
-  };
-  */
-
 }
 
 // Show the active Context
