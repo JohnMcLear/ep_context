@@ -132,6 +132,7 @@ exports.postAceInit = function(hook, context){
       select.css("top", offset+"px");
       select.data("lineNumber", lineNumber);
       $(select).show();
+      $(select).attr('size', styles.length+1); // TODO dont be hardcoded
     });
 
 
