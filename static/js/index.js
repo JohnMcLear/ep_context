@@ -349,7 +349,8 @@ function doContext(level){
   firstLine = rep.selStart[0];
   lastLine = Math.max(firstLine, rep.selEnd[0] - ((rep.selEnd[1] === 0) ? 1 : 0));
   _(_.range(firstLine, lastLine + 1)).each(function(i){
-    // Does range already have attribute?
+    // Does range already have attribute?  Commented out because stacking not required
+/*
     var attributes = documentAttributeManager.getAttributeOnLine(i, 'context');
     if(attributes || level){
       // are attempting to remove a line attribute?
@@ -366,11 +367,14 @@ function doContext(level){
         }
       }
       if(attributes.length > 1){
+        // Temporary patch to not allow multiple contexts on a line
         documentAttributeManager.setAttributeOnLine(i, 'context', attributes);
       }else{
         documentAttributeManager.removeAttributeOnLine(i, 'context');
       }
     }
+*/
+    documentAttributeManager.setAttributeOnLine(i, 'context', level);
   });
 }
 
