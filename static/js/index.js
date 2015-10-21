@@ -47,14 +47,6 @@ exports.postAceInit = function(hook, context){
     head.append("<style>"+css+"</style>");
   });
 
-  // Selection event
-  $('.context-selection').change(function(contextValue){
-    var newValue = $('.context-selection').val();
-    context.ace.callWithAce(function(ace){
-      ace.ace_doContext(newValue);
-    },'context' , true);
-  });
-
   var contextControlsContainerHTML = '<div id="contextButtonsContainer" style="display:block;z-index:1;margin-left:80px;"></div>';
   var buttonsHTML = '<div id="newLineButton" style="position:absolute; cursor:pointer; border:solid 1px black; padding: 0px 2px 0px 2px; margin-left:30px;" unselectable="on">+</div>';
   buttonsHTML += '<div id="contextArrow" style="position:absolute;cursor:pointer;border:solid 1px black;padding:0px 2px 0px 2px" unselectable="on">></div>';
@@ -74,26 +66,31 @@ exports.postAceInit = function(hook, context){
   var select = controlsContainer.find(".context-selection");
   var controls = controlsContainer.find("#contextArrow, #newLineButton, #deleteLineButton");
 
+  // Selection event
+  $('.context-selection').change(function(contextValue){
+    var newValue = $('.context-selection').val();
+    context.ace.callWithAce(function(ace){
+      ace.ace_doContext(newValue);
+    },'context' , true);
+  });
+
   $(select).change(function(contextValue){
     var newValue = $(select).val();
     context.ace.callWithAce(function(ace){
       ace.ace_doContext(newValue);
     },'context' , true);
+    select.hide();
   });
 
   context.ace.callWithAce(function(ace){
     var doc = ace.ace_getDocument();
 
     // On line click show the little arrow :)
+
     $(doc).on("click", "div", function(e){
-      // Get the offset of the click
-      var offset = e.currentTarget.offsetTop + (e.currentTarget.offsetHeight/2);
       // Show some buttons at this offset
       var lineNumber = $(e.currentTarget).prevAll().length;
-      controlsContainer.show();
-      controls.css("top", offset+"px");
-      controls.data("lineNumber", lineNumber);
-      $(select).hide();
+      reDrawControls(lineNumber);
     });
 
     // On Big + button click create a new line
@@ -204,6 +201,11 @@ exports.aceEditEvent = function(hook, call, cb){
   var cs = call.callstack;
   var rep = call.rep;
   var documentAttributeManager = call.documentAttributeManager;
+
+  // reDraw controls to this location..  (might be a little confusing)...
+  if(cs.type === "handleKeyEvent" || cs.type === "idleWorkTimer"){
+    reDrawControls(rep.selStart[0]);
+  }
 
   // reDraw last line button if we're setting up the document or it's changed at all
   if(cs.type === "setWraps" || cs.docTextChanged){
@@ -483,3 +485,21 @@ exports.aceKeyEvent = function(hook, e){
   }
 }
 
+function reDrawControls(lineNumber){
+  var padInner = $('iframe[name="ace_outer"]').contents().find('iframe[name="ace_inner"]');
+  var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
+  var controlsContainer = padOuter.find("#contextButtonsContainer")
+  var select = controlsContainer.find(".context-selection");
+  var controls = controlsContainer.find("#contextArrow, #newLineButton, #deleteLineButton");
+
+  var line = padInner.contents().find("div").eq(lineNumber);
+  var offsetTop = line[0].offsetTop || 0;
+  var offsetHeight = line[0].offsetHeight /2;
+
+  // Get the offset of the line
+  var offset = offsetTop + offsetHeight;
+
+  controlsContainer.show();
+  controls.css("top", offset+"px");
+  controls.data("lineNumber", lineNumber);
+}
