@@ -532,8 +532,6 @@ function reDrawContextOnLeft(cs, documentAttributeManager, rep){
     //get the line context
     var context = documentAttributeManager.getAttributeOnLine(k, 'context');
    
-    console.log("line", k, offsetTop, context);
- 
     if(context){
       // draw the context value on the screen
       contextContainer.append("<div style='position:absolute; width:100%; margin-left:-50px; top:"+offset+"px'>"+context+"</div>");
