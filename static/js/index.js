@@ -64,6 +64,7 @@ exports.postAceInit = function(hook, context){
 
   var controlsContainer = padOuter.find("#contextButtonsContainer")
   var select = controlsContainer.find(".context-selection");
+  $(select).hide();
   var controls = controlsContainer.find("#contextArrow, #newLineButton, #deleteLineButton");
 
   // Selection event
@@ -123,6 +124,11 @@ exports.postAceInit = function(hook, context){
 
     // On click of arrow show the select options to change context
     $('iframe[name="ace_outer"]').contents().find('#outerdocbody').on("click", "#contextArrow", function(e){
+      var isVisible = $(select).is(":visible");
+      if(isVisible){
+        $(select).hide();
+        return;
+      }
       var lineNumber = $(e.currentTarget).data("lineNumber");
       var offset = e.currentTarget.offsetTop + (e.currentTarget.offsetHeight/2) + 5;
       select.css("position", "absolute");
