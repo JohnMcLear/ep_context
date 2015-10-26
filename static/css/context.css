@@ -27,3 +27,7 @@ contextwhereas::before{
 contextwhereas::after{
   content: '; and';
 }
+
+contextwhereas::last-of-type{
+  content: '; now, therefore,';
+}
