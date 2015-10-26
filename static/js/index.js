@@ -47,6 +47,27 @@ exports.postAceInit = function(hook, context){
     head.append("<style>"+css+"</style>");
   });
 
+  var contextControlsContainerHTML = '<div id="contextButtonsContainer" style="display:block;z-index:1;margin-left:50px;"></div>';
+  var buttonsHTML = '<div id="newLineButton" style="position:absolute; cursor:pointer; border:solid 1px black; padding: 0px 2px 0px 2px; margin-left:30px;" unselectable="on">+</div>';
+  buttonsHTML += '<div id="contextArrow" style="position:absolute;cursor:pointer;border:solid 1px black;padding:0px 2px 0px 2px" unselectable="on">></div>';
+  buttonsHTML += '<div id="deleteLineButton" style="position:absolute; cursor:pointer; border:solid 1px black; padding: 0px 4px 0px 4px; margin-left:15px;" unselectable="on">-</div>';
+  var bigButtonHTML = '<button id="bigNewLineButton" style="width:650px;position:absolute;top:0;left:auto;margin-left:133px">+</button>';
+  var contextContainer = '<div id="contextContainer" style="display:block;z-index:1;margin-left:10px;background:#000"><div style="position:absolute; margin-left:-50px; width:100%; top:10px;"></div></div>';
+  var optionsHTML = $('.context').html();
+  var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
+  var padInner = padOuter.contents().find('#innerdocbody');
+
+  // Add control stuff to the UI
+  padOuter.find("#sidediv").after(bigButtonHTML);
+  padOuter.find("#sidediv").after(contextControlsContainerHTML);
+  padOuter.find("#sidediv").after(contextContainer);
+  padOuter.find("#contextButtonsContainer").html(buttonsHTML);
+  padOuter.find("#contextButtonsContainer").append(optionsHTML);
+
+  var controlsContainer = padOuter.find("#contextButtonsContainer")
+  var select = controlsContainer.find(".context-selection");
+  var controls = controlsContainer.find("#contextArrow, #newLineButton, #deleteLineButton");
+
   // Selection event
   $('.context-selection').change(function(contextValue){
     var newValue = $('.context-selection').val();
@@ -55,45 +76,23 @@ exports.postAceInit = function(hook, context){
     },'context' , true);
   });
 
-  var contextControlsContainerHTML = '<div id="contextButtonsContainer" style="display:block;z-index:1;margin-left:80px;"></div>';
-  var buttonsHTML = '<div id="newLineButton" style="position:absolute; cursor:pointer; border:solid 1px black; padding: 0px 2px 0px 2px; margin-left:30px;" unselectable="on">+</div>';
-  buttonsHTML += '<div id="contextArrow" style="position:absolute;cursor:pointer;border:solid 1px black;padding:0px 2px 0px 2px" unselectable="on">></div>';
-  buttonsHTML += '<div id="deleteLineButton" style="position:absolute; cursor:pointer; border:solid 1px black; padding: 0px 4px 0px 4px; margin-left:15px;" unselectable="on">-</div>';
-  var bigButtonHTML = '<button id="bigNewLineButton" style="width:650px;position:absolute;top:0;left:auto;margin-left:133px">+</button>';
-  var optionsHTML = $('.context').html();
-  var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
-  var padInner = padOuter.contents().find('#innerdocbody');
-
-  // Add control stuff to the UI
-  padOuter.find("#sidediv").after(bigButtonHTML);
-  padOuter.find("#sidediv").after(contextControlsContainerHTML);
-  padOuter.find("#contextButtonsContainer").html(buttonsHTML);
-  padOuter.find("#contextButtonsContainer").append(optionsHTML);
-
-  var controlsContainer = padOuter.find("#contextButtonsContainer")
-  var select = controlsContainer.find(".context-selection");
-  var controls = controlsContainer.find("#contextArrow, #newLineButton, #deleteLineButton");
-
   $(select).change(function(contextValue){
     var newValue = $(select).val();
     context.ace.callWithAce(function(ace){
       ace.ace_doContext(newValue);
     },'context' , true);
+    select.hide();
   });
 
   context.ace.callWithAce(function(ace){
     var doc = ace.ace_getDocument();
 
     // On line click show the little arrow :)
+
     $(doc).on("click", "div", function(e){
-      // Get the offset of the click
-      var offset = e.currentTarget.offsetTop + (e.currentTarget.offsetHeight/2);
       // Show some buttons at this offset
       var lineNumber = $(e.currentTarget).prevAll().length;
-      controlsContainer.show();
-      controls.css("top", offset+"px");
-      controls.data("lineNumber", lineNumber);
-      $(select).hide();
+      reDrawControls(lineNumber);
     });
 
     // On Big + button click create a new line
@@ -205,15 +204,26 @@ exports.aceEditEvent = function(hook, call, cb){
   var rep = call.rep;
   var documentAttributeManager = call.documentAttributeManager;
 
+  // reDraw controls to this location..  (might be a little confusing)...
+  if(cs.type === "handleKeyEvent" || cs.type === "idleWorkTimer"){
+    reDrawControls(rep.selStart[0]);
+  }
+
   // reDraw last line button if we're setting up the document or it's changed at all
   if(cs.type === "setWraps" || cs.docTextChanged){
     reDrawLastLineButton(cs, documentAttributeManager, rep);
+    reDrawContextOnLeft(cs, documentAttributeManager, rep);
   }
+
+/*
+  if(cs.docTextChanged === true && cs.domClean === true && cs.repChanged === true){
+    reDrawContextOnLeft(cs, documentAttributeManager, rep);
+  }
+*/
 
   if(!(cs.type == "handleClick") && !(cs.type == "handleKeyEvent") && !(cs.docTextChanged)){
     return false;
   }
-
 
   if(cs.docTextChanged === true && cs.domClean === true && cs.repChanged === true && (cs.type === "handleKeyEvent" || cs.type === "context")){ 
     var lastLine = rep.selStart[0]-1;
@@ -481,5 +491,55 @@ exports.aceKeyEvent = function(hook, e){
   if(e.evt.keyCode !== 13){
     clientVars.plugins.plugins.ep_context.crudeEnterCounter = 0;
   }
+}
+
+function reDrawControls(lineNumber){
+  var padInner = $('iframe[name="ace_outer"]').contents().find('iframe[name="ace_inner"]');
+  var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
+  var controlsContainer = padOuter.find("#contextButtonsContainer")
+  var select = controlsContainer.find(".context-selection");
+  var controls = controlsContainer.find("#contextArrow, #newLineButton, #deleteLineButton");
+
+  var line = padInner.contents().find("div").eq(lineNumber);
+  var offsetTop = line[0].offsetTop || 0;
+  var offsetHeight = line[0].offsetHeight /2;
+
+  // Get the offset of the line
+  var offset = offsetTop + offsetHeight;
+
+  controlsContainer.show();
+  controls.css("top", offset+"px");
+  controls.data("lineNumber", lineNumber);
+}
+
+function reDrawContextOnLeft(cs, documentAttributeManager, rep){
+  var padInner = $('iframe[name="ace_outer"]').contents().find('iframe[name="ace_inner"]');
+  var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
+  var contextContainer = padOuter.find('#contextContainer');
+  contextContainer.html("");
+
+
+  // for each line
+  var lines = padInner.contents().find("div");
+
+  $.each(lines, function(k, line){
+
+    // get offset and height
+    var offsetTop = $(line)[0].offsetTop || 0
+    var offsetHeight = $(line)[0].offsetHeight /2;
+    var offset = offsetTop + offsetHeight;
+
+    //get the line context
+    var context = documentAttributeManager.getAttributeOnLine(k, 'context');
+   
+    if(context){
+      // draw the context value on the screen
+      contextContainer.append("<div style='position:absolute; width:100%; margin-left:-50px; top:"+offset+"px'>"+context+"</div>");
+    }
+  });
+
+
+
+  // draw the context value on the screen
 }
 
