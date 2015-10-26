@@ -1,0 +1,33 @@
+.contextContainer {
+  display:block;
+  z-index: 1;
+  margin-left: 10px;
+  background: #000;
+}
+
+.contextLabel {
+  position:absolute;
+  margin-left:-55px;
+  color: #727272;
+}
+
+/* Context Styling */
+
+contexttitle {
+  text-align:center;
+  display:block;
+  font-size: 18px;
+  line-height: 36px;
+}
+
+contextwhereas::before{
+  content: 'WHEREAS ';
+}
+
+contextwhereas::after{
+  content: '; and';
+}
+
+contextwhereas::last-of-type{
+  content: '; now, therefore,';
+}

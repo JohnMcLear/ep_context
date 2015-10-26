@@ -3,7 +3,7 @@ var $ = require('ep_etherpad-lite/static/js/rjquery').$;
 var _ = require('ep_etherpad-lite/static/js/underscore');
 
 // var styles = ["Section", "Paragraph", "Subsection", "Form", "Distribution-code", "Congress", "Session", "Header", "Enum"];
-var styles = ["Title", "Whereas"];
+var styles = ["Sponsor", "Title", "Whereas", "Resolved", "Signature", "Date"];
 /*
 var stylesCSS = ["contextparagraph{margin-left:10px;color:green;}",
   "contextform{text-align:center;display:block;}",
@@ -16,12 +16,10 @@ var stylesCSS = ["contextparagraph{margin-left:10px;color:green;}",
   "contextdistribution-code{text-align:right;display:block;}"]
 */
 
-var stylesCSS = [
-  "contexttitle{text-align:center;display:block;font-size:18px;line-height:36px;}",
-  "contextwhereas::before{content: 'Whereas '}"
-];
-
-
+// var stylesCSS = [
+//   "contexttitle{text-align:center;display:block;font-size:18px;line-height:36px;}",
+//   "contextwhereas::before{content: 'Whereas '}"
+// ];
 
 /*****
 * Basic setup
@@ -43,16 +41,16 @@ exports.postAceInit = function(hook, context){
   var inner = $('iframe[name="ace_outer"]').contents().find('iframe[name="ace_inner"]');
   var head = inner.contents().find("head");
 
-  $.each(stylesCSS, function(k,css){
-    head.append("<style>"+css+"</style>");
-  });
+  // $.each(stylesCSS, function(k,css){
+  //   head.append("<style>"+css+"</style>");
+  // });
 
   var contextControlsContainerHTML = '<div id="contextButtonsContainer" style="display:block;z-index:1;margin-left:50px;"></div>';
   var buttonsHTML = '<div id="newLineButton" style="position:absolute; cursor:pointer; border:solid 1px black; padding: 0px 2px 0px 2px; margin-left:30px;" unselectable="on">+</div>';
   buttonsHTML += '<div id="contextArrow" style="position:absolute;cursor:pointer;border:solid 1px black;padding:0px 2px 0px 2px" unselectable="on">></div>';
   buttonsHTML += '<div id="deleteLineButton" style="position:absolute; cursor:pointer; border:solid 1px black; padding: 0px 4px 0px 4px; margin-left:15px;" unselectable="on">-</div>';
   var bigButtonHTML = '<button id="bigNewLineButton" style="width:650px;position:absolute;top:0;left:auto;margin-left:133px">+</button>';
-  var contextContainer = '<div id="contextContainer" style="display:block;z-index:1;margin-left:10px;background:#000"><div style="position:absolute; margin-left:-50px; width:100%; top:10px;"></div></div>';
+  var contextContainer = '<div id="contextContainer" class="contextContainer"><div style="position:absolute; margin-left:-50px; width:100%; top:10px;"></div></div>';
   var optionsHTML = $('.context').html();
   var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
   var padInner = padOuter.contents().find('#innerdocbody');
@@ -534,7 +532,7 @@ function reDrawContextOnLeft(cs, documentAttributeManager, rep){
    
     if(context){
       // draw the context value on the screen
-      contextContainer.append("<div style='position:absolute; width:100%; margin-left:-50px; top:"+offset+"px'>"+context+"</div>");
+      contextContainer.append("<div class='contextLabel' style='top:"+offset+"px'>"+context+"</div>");
     }
   });
 
