@@ -52,7 +52,7 @@ exports.postAceInit = function(hook, context){
   buttonsHTML += '<div id="contextArrow" style="position:absolute;cursor:pointer;border:solid 1px black;padding:0px 2px 0px 2px" unselectable="on">></div>';
   buttonsHTML += '<div id="deleteLineButton" style="position:absolute; cursor:pointer; border:solid 1px black; padding: 0px 4px 0px 4px; margin-left:15px;" unselectable="on">-</div>';
   var bigButtonHTML = '<button id="bigNewLineButton" style="width:650px;position:absolute;top:0;left:auto;margin-left:133px">+</button>';
-  var contextContainer = '<div id="contextContainer" style="display:block;z-index:1;margin-left:10px;background:#000"><div style="position:absolute; margin-left:-50px; width:100%; top:10px;"></div></div>';
+  var contextContainer = '<div id="contextContainer" class="contextContainer"><div style="position:absolute; margin-left:-50px; width:100%; top:10px;"></div></div>';
   var optionsHTML = $('.context').html();
   var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
   var padInner = padOuter.contents().find('#innerdocbody');
@@ -534,7 +534,7 @@ function reDrawContextOnLeft(cs, documentAttributeManager, rep){
    
     if(context){
       // draw the context value on the screen
-      contextContainer.append("<div style='position:absolute; width:100%; margin-left:-50px; top:"+offset+"px'>"+context+"</div>");
+      contextContainer.append("<div class='contextLabel' style='top:"+offset+"px'>"+context+"</div>");
     }
   });
 

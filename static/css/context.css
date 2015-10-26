@@ -1,0 +1,12 @@
+.contextContainer {
+  display:block;
+  z-index: 1;
+  margin-left: 10px;
+  background: #000;
+}
+
+.contextLabel {
+  position:absolute;
+  margin-left:-55px;
+  color: #727272;
+}
