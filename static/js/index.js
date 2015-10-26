@@ -46,9 +46,9 @@ exports.postAceInit = function(hook, context){
   // });
 
   var contextControlsContainerHTML = '<div id="contextButtonsContainer" style="display:block;z-index:1;margin-left:50px;"></div>';
-  var buttonsHTML = '<div id="newLineButton" style="position:absolute; cursor:pointer; border:solid 1px black; padding: 0px 2px 0px 2px; margin-left:30px;" unselectable="on">+</div>';
-  buttonsHTML += '<div id="contextArrow" style="position:absolute;cursor:pointer;border:solid 1px black;padding:0px 2px 0px 2px" unselectable="on">></div>';
-  buttonsHTML += '<div id="deleteLineButton" style="position:absolute; cursor:pointer; border:solid 1px black; padding: 0px 4px 0px 4px; margin-left:15px;" unselectable="on">-</div>';
+  var buttonsHTML = '<div id="contextArrow" class="contextButton" unselectable="on">></div>';
+  buttonsHTML += '<div id="deleteLineButton" class="contextButton" unselectable="on">-</div>';
+  buttonsHTML += '<div id="newLineButton" class="contextButton" unselectable="on">+</div>';
   var bigButtonHTML = '<button id="bigNewLineButton" style="width:650px;position:absolute;top:0;left:auto;margin-left:133px">+</button>';
   var contextContainer = '<div id="contextContainer" class="contextContainer"><div style="position:absolute; margin-left:-50px; width:100%; top:10px;"></div></div>';
   var optionsHTML = $('.context').html();

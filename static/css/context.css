@@ -1,3 +1,29 @@
+.contextButton {
+  border:5px;
+  cursor:pointer;
+  position:absolute;
+  border:solid 1px black;
+  padding: 0px 4px 0px 4px;
+  margin-left:15px;
+  width:6px;
+  height:12px;
+  text-align:center;
+  line-height:11px;
+  border-radius:2px;
+}
+
+.contextButton:hover {
+  background:#d4d4d4;
+}
+
+.contextButton:nth-of-type(2) {
+margin-left:35px;
+}
+
+.contextButton:nth-of-type(3) {
+  margin-left:55px;
+}
+
 .contextContainer {
   display:block;
   z-index: 1;
@@ -11,7 +37,22 @@
   color: #727272;
 }
 
-/* Context Styling */
+.context-selection {
+  border-radius:5px;
+  padding:5px;
+}
+
+.context-selection option {
+  padding: 0 2px;
+  border-radius:3px;
+}
+
+.context-selection option:hover {
+  background:#727272;
+  cursor:pointer;
+}
+
+/* Specific Context Styling */
 
 contexttitle {
   text-align:center;
@@ -20,14 +61,25 @@ contexttitle {
   line-height: 36px;
 }
 
-contextwhereas::before{
+contextwhereas::before {
   content: 'WHEREAS ';
+  font-style: italic;
 }
 
-contextwhereas::after{
+contextwhereas::after {
   content: '; and';
 }
 
+/*
 contextwhereas::last-of-type{
   content: '; now, therefore,';
+}*/
+
+contextresolved::before {
+  content: 'BE IT RESOLVED ';
+  font-style: italic;
+}
+
+contextresolved::after {
+  content: '; and';
 }
