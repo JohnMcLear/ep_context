@@ -16,12 +16,10 @@ var stylesCSS = ["contextparagraph{margin-left:10px;color:green;}",
   "contextdistribution-code{text-align:right;display:block;}"]
 */
 
-var stylesCSS = [
-  "contexttitle{text-align:center;display:block;font-size:18px;line-height:36px;}",
-  "contextwhereas::before{content: 'Whereas '}"
-];
-
-
+// var stylesCSS = [
+//   "contexttitle{text-align:center;display:block;font-size:18px;line-height:36px;}",
+//   "contextwhereas::before{content: 'Whereas '}"
+// ];
 
 /*****
 * Basic setup
@@ -43,9 +41,9 @@ exports.postAceInit = function(hook, context){
   var inner = $('iframe[name="ace_outer"]').contents().find('iframe[name="ace_inner"]');
   var head = inner.contents().find("head");
 
-  $.each(stylesCSS, function(k,css){
-    head.append("<style>"+css+"</style>");
-  });
+  // $.each(stylesCSS, function(k,css){
+  //   head.append("<style>"+css+"</style>");
+  // });
 
   var contextControlsContainerHTML = '<div id="contextButtonsContainer" style="display:block;z-index:1;margin-left:50px;"></div>';
   var buttonsHTML = '<div id="newLineButton" style="position:absolute; cursor:pointer; border:solid 1px black; padding: 0px 2px 0px 2px; margin-left:30px;" unselectable="on">+</div>';

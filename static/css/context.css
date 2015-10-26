@@ -10,3 +10,20 @@
   margin-left:-55px;
   color: #727272;
 }
+
+/* Context Styling */
+
+contexttitle {
+  text-align:center;
+  display:block;
+  font-size: 18px;
+  line-height: 36px;
+}
+
+contextwhereas::before{
+  content: 'WHEREAS ';
+}
+
+contextwhereas::after{
+  content: '; and';
+}
