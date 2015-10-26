@@ -2,24 +2,7 @@ var _, $, jQuery;
 var $ = require('ep_etherpad-lite/static/js/rjquery').$;
 var _ = require('ep_etherpad-lite/static/js/underscore');
 
-// var styles = ["Section", "Paragraph", "Subsection", "Form", "Distribution-code", "Congress", "Session", "Header", "Enum"];
 var styles = ["Sponsor", "Title", "Whereas", "Resolved", "Signature", "Date"];
-/*
-var stylesCSS = ["contextparagraph{margin-left:10px;color:green;}",
-  "contextform{text-align:center;display:block;}",
-  "contextsection > contextheader, contextsection > contextenum{text-align:center;display:block;}",
-  "contextenum{font-weight:bolder;}",
-  "contextheader{font-weight:bolder;}",
-  "contextcongress{font-variant: small-caps;}",
-  "contextsession{font-variant: small-caps;}",
-  "contextsubsection{margin-left:15px;color:blue;}",
-  "contextdistribution-code{text-align:right;display:block;}"]
-*/
-
-// var stylesCSS = [
-//   "contexttitle{text-align:center;display:block;font-size:18px;line-height:36px;}",
-//   "contextwhereas::before{content: 'Whereas '}"
-// ];
 
 /*****
 * Basic setup
@@ -224,22 +207,18 @@ exports.aceEditEvent = function(hook, call, cb){
     reDrawContextOnLeft(cs, documentAttributeManager, rep);
   }
 
-/*
-  if(cs.docTextChanged === true && cs.domClean === true && cs.repChanged === true){
-    reDrawContextOnLeft(cs, documentAttributeManager, rep);
-  }
-*/
-
   if(!(cs.type == "handleClick") && !(cs.type == "handleKeyEvent") && !(cs.docTextChanged)){
     return false;
   }
 
   if(cs.docTextChanged === true && cs.domClean === true && cs.repChanged === true && (cs.type === "handleKeyEvent" || cs.type === "context")){ 
+    reAssignContextToLastLineOfContextType(cs, documentAttributeManager, rep);
+    console.log("reherping the last line");
     var lastLine = rep.selStart[0]-1;
     var thisLine = rep.selEnd[0];
     var padLength = rep.lines.length();
 
-    // This should only fire on a new line, at the moment it fires on a new tab!
+    // TODO: This should only fire on a new line, at the moment it fires on a new tab!
     var attributes = documentAttributeManager.getAttributeOnLine(lastLine, 'context');
 
     if(attributes){
@@ -273,6 +252,8 @@ exports.aceEditEvent = function(hook, call, cb){
           // This bit appears to be broken, todo
           // var blankLine = (call.rep.alines[thisLine] === "*0|1+1");
           // if(!blankLine) return;
+console.log("HEY", attributes);
+          if(attributes === "lastwhereas") attributes = "whereas";
           documentAttributeManager.setAttributeOnLine(thisLine, 'context', attributes);
         }
         clientVars.plugins.plugins.ep_context.crudeEnterCounter++;
@@ -348,6 +329,7 @@ exports.aceAttribsToClasses = function(hook, context){
 // Block elements - Prevents character walking
 exports.aceRegisterBlockElements = function(){
   var styleArr = [];
+  styleArr.push("contextlastwhereas");
 
   $.each(styles, function(k,v){
     styleArr.push("context"+v.toLowerCase());
@@ -458,7 +440,7 @@ exports.aceDomLineProcessLineAttributes = function(name, context){
         tag = tag.substring(7,tag.length); // cake
         tag = tag.charAt(0).toUpperCase() + tag.slice(1);
       }
-      if(styles.indexOf(tag) !== -1){
+      if(styles.indexOf(tag) !== -1 || tag === "lastwhereas"){
         preHtml += '<context' + tag + ' class="context">';
         postHtml += '</context' + tag + ' class="context">';
         processed = true;
@@ -554,3 +536,46 @@ function reDrawContextOnLeft(cs, documentAttributeManager, rep){
   // draw the context value on the screen
 }
 
+function reAssignContextToLastLineOfContextType(cs, documentAttributeManager, rep){
+  // Iterate through document
+  var padInner = $('iframe[name="ace_outer"]').contents().find('iframe[name="ace_inner"]');
+  var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
+
+  // for each line
+  var lines = padInner.contents().find("div");
+  var lastLine = 0;
+
+  $.each(lines, function(k, line){
+    // Find last contextwhereas
+    var hasContext = $(line).find("contextwhereas");
+    isLastLine = $(hasContext).find("wherewhereaslastline").length;
+    if(hasContext.length && !isLastLine){
+      // Get the line number of the last one
+      lastLine = k;
+    }
+  });
+
+  if(!lastLine) return;
+
+  console.log("last line with whereas is", lastLine);
+
+  // Check to see if this line number already has lastwhere context value
+  var context = documentAttributeManager.getAttributeOnLine(lastLine, 'context');
+
+  // Check to see if the line after it already is lastwhere 
+  var nextContext = documentAttributeManager.getAttributeOnLine(lastLine+1, 'context');
+
+  console.log("herp", nextContext);
+
+  console.log("context", context);
+
+  if(context === "Whereas" && context !== "lastWhereas" && nextContext !== "lastwhereas"){
+    documentAttributeManager.removeAttributeOnLine(lastLine, 'context');
+    documentAttributeManager.setAttributeOnLine(lastLine, 'context', 'lastwhereas');
+  }
+
+//cake
+
+  // If not, remove contextwhereas and apply contextlastwhereas
+  console.log("reassigning");
+}

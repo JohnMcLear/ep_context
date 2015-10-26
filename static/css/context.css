@@ -70,10 +70,10 @@ contextwhereas::after {
   content: '; and';
 }
 
-/*
-contextwhereas::last-of-type{
+contextlastwhereas::before{
   content: '; now, therefore,';
-}*/
+}
+
 
 contextresolved::before {
   content: 'BE IT RESOLVED ';
