@@ -207,6 +207,11 @@ exports.aceEditEvent = function(hook, call, cb){
     reDrawControls(rep.selStart[0]);
   }
 
+  // Hide the select on click of the rest of the page
+  if(cs.type == "handleClick"){
+    $('iframe[name="ace_outer"]').contents().find('.context-selection').hide();
+  }
+
   // reDraw last line button if we're setting up the document or it's changed at all
   if(cs.type === "setWraps" || cs.docTextChanged){
     reDrawLastLineButton(cs, documentAttributeManager, rep);
@@ -485,7 +490,9 @@ function cleanArray(actual){
 // so you don't get double line enters as the attributes are atetmpted to be added
 // before the DOM is redrawn
 exports.aceKeyEvent = function(hook, e){
+  
   $('iframe[name="ace_outer"]').contents().find('#contextButtonsContainer').hide();
+  $('iframe[name="ace_outer"]').contents().find('.context-selection').hide();
   if(e.evt.keyCode !== 13){
     clientVars.plugins.plugins.ep_context.crudeEnterCounter = 0;
   }
