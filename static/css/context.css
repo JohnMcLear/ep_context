@@ -27,13 +27,12 @@ margin-left:35px;
 .contextContainer {
   display:block;
   z-index: 1;
-  margin-left: 10px;
   background: #000;
+  margin-left:-65px;
 }
 
 .contextLabel {
   position:absolute;
-  margin-left:-55px;
   color: #727272;
 }
 
