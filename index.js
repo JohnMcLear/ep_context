@@ -4,6 +4,7 @@ var sanitize = require('./sanitizer.js').sanitize;
 var Security = require('ep_etherpad-lite/static/js/security'); 
 var _encodeWhitespace = require('ep_etherpad-lite/node/utils/ExportHelper')._encodeWhitespace;
 
+/*
 var stylesCSS = ["contextparagraph{margin-left:10px;color:green;}",
   "contextform{text-align:center;display:block;}",
   "contextsection > contextheader, contextsection > contextenum{text-align:center;display:block;}",
@@ -13,7 +14,9 @@ var stylesCSS = ["contextparagraph{margin-left:10px;color:green;}",
   "contextsession{font-variant: small-caps;}",
   "contextsubsection{margin-left:15px;color:blue;}",
   "contextdistribution-code{text-align:right;display:block;}"]
-
+*/
+var stylesCSS = ["contexttitle{text-align:center;display:block;font-size:18px;line-height:20px;}",
+  "contextwhereas::before{content: 'Whereas '}"];
 
 /******************** 
 * UI 
@@ -86,7 +89,8 @@ exports.getLineHTMLForExport = function (hook, line) {
 
 // clean up HTML into something sane
 exports.exportHTMLSend = function(hook, html, cb){
-  var blockElements = ["Section", "Paragraph", "Subsection", "Form", "Distribution-code", "Congress", "Session", "Header", "Enum"];
+//  var blockElements = ["Section", "Paragraph", "Subsection", "Form", "Distribution-code", "Congress", "Session", "Header", "Enum"];
+  var blockElements = ["Sponsor", "Title", "Whereas", "Resolved", "Signature", "Date", "LastWhereas"];
   sanitize.exec(html, blockElements, function(error, cleanedHTML){
     cb(cleanedHTML);
   });

@@ -12,7 +12,8 @@
         "collectContentPost": "ep_context/static/js/shared",
         "aceInitialized": "ep_context/static/js/index",
         "collectContentLineText": "ep_context/static/js/index",
-        "aceKeyEvent": "ep_context/static/js/index"
+        "aceKeyEvent": "ep_context/static/js/index",
+        "aceEditorCSS": "ep_context/static/js/context"
       },
       "hooks": {
         "eejsBlock_editbarMenuLeft": "ep_context/index",
