@@ -39,6 +39,7 @@ margin-left:35px;
 .context-selection {
   border-radius:5px;
   padding:5px;
+  z-index:2;
 }
 
 .context-selection option {
