@@ -507,6 +507,22 @@ exports.aceKeyEvent = function(hook, e){
     e.evt.preventDefault(); // Prevent default behavior
     return true;
   }
+
+  // If we hit shift tab toggle between contexts
+  if(evt.keyCode === 9 && evt.shiftKey && evt.type === "keydown"){
+    console.log("shift tab", select.is(":visible"));
+    // is Select visible?
+    if( select.is(":visible") ){
+      console.log("tabbing");
+      // prevent de-indent
+      e.evt.preventDefault();
+      // tab through item in context
+      // get current value
+      var nextVal = select.children(':selected').next().val();
+      select.val(nextVal);
+      e.editorInfo.ace_doContext(nextVal);
+    }
+  }
 }
 
 function reDrawControls(lineNumber){
