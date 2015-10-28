@@ -51,6 +51,7 @@ exports.postAceInit = function(hook, context){
   var controls = controlsContainer.find("#contextArrow, #newLineButton, #deleteLineButton");
 
   // Selection event
+  /*
   $('.context-selection').change(function(contextValue){
     var newValue = $('.context-selection').val();
     context.ace.callWithAce(function(ace){
@@ -61,8 +62,23 @@ exports.postAceInit = function(hook, context){
     var innerdoc = padInner[0];
     $(innerdoc).contents().find("body").blur().focus();
   });
+  */
 
-  $(select).change(function(contextValue){
+  $(select).on("keypress", function(e){
+    if(e.keyCode === 13){
+      var newValue = $(select).val();
+      context.ace.callWithAce(function(ace){
+        ace.ace_doContext(newValue);
+      },'context' , true);
+      select.hide();
+
+      // Re-focus our powers!
+      var innerdoc = padInner[0];
+      $(innerdoc).contents().find("body").blur().focus();
+    }
+  });
+
+  $(select).click(function(contextValue){
     var newValue = $(select).val();
     context.ace.callWithAce(function(ace){
       ace.ace_doContext(newValue);
@@ -78,7 +94,6 @@ exports.postAceInit = function(hook, context){
     var doc = ace.ace_getDocument();
 
     // On line click show the little arrow :)
-
     $(doc).on("click", "div", function(e){
       // Show some buttons at this offset
       var lineNumber = $(e.currentTarget).prevAll().length;
@@ -222,6 +237,7 @@ exports.aceEditEvent = function(hook, call, cb){
   }
 
   if(cs.docTextChanged === true && cs.domClean === true && cs.repChanged === true && (cs.type === "handleKeyEvent" || cs.type === "context")){ 
+  console.log(call);
     // reAssignContextToLastLineOfContextType(cs, documentAttributeManager, rep);
     console.log("reherping the last line");
     var lastLine = rep.selStart[0]-1;
@@ -234,7 +250,7 @@ exports.aceEditEvent = function(hook, call, cb){
     if(attributes){
       // First thing first we are seeing if its a big button push
       if(cs.type === "context"){
-        // console.log("set", thisLine, attributes);
+        console.log("big button push", thisLine, attributes);
         documentAttributeManager.setAttributeOnLine(padLength-2, 'context', attributes);
         // Now we need to move caret to here..
       }else{
@@ -260,8 +276,9 @@ exports.aceEditEvent = function(hook, call, cb){
         }else{ // first enter will keep the attribute
           // Make sure the line doesn't have any content in already
           // This bit appears to be broken, todo
-          // var blankLine = (call.rep.alines[thisLine] === "*0|1+1");
-          // if(!blankLine) return;
+          // This is also needed for an event that isn't actually an enter key
+          var blankLine = (call.rep.alines[thisLine] === "*0|1+1");
+          if(!blankLine) return;
           if(attributes === "lastwhereas") attributes = "whereas";
           documentAttributeManager.setAttributeOnLine(thisLine, 'context', attributes);
         }
@@ -332,11 +349,11 @@ function doContext(level){
   var rep = this.rep;
   var documentAttributeManager = this.documentAttributeManager;
   var firstLine, lastLine;
-console.log(rep);
   firstLine = rep.selStart[0];
   // lastLine = Math.max(firstLine, rep.selEnd[0] - ((rep.selEnd[1] === 0) ? 1 : 0));
   // _(_.range(firstLine, lastLine + 1)).each(function(i){
     if(level === "dummy"){
+      // console.log("removing attribute on line");
       documentAttributeManager.removeAttributeOnLine(firstLine, 'context');
     }else{
       // console.log("set attr on", firstLine, level);
@@ -466,29 +483,28 @@ exports.aceKeyEvent = function(hook, e){
     select.css("top", offset+"px");
     select.data("lineNumber", lineNumber);
     $(select).attr('size', styles.length+1).show().css("position", "absolute");
+    $(select).focus();
     e.evt.preventDefault(); // Prevent default behavior
     return true;
   }
 
-  // If we hit shift tab toggle between contexts
-  if(evt.keyCode === 9 && evt.shiftKey && evt.type === "keydown"){
-    console.log("shift tab", select.is(":visible"));
+  // If we hit arrow key up/down move between contexts options
+  if((evt.keyCode === 40 || evt.keyCode === 38) && evt.type === "keydown"){
+    // console.log("shift tab", select.is(":visible"));
     // is Select visible?
     if( select.is(":visible") ){
-      console.log("tabbing");
       // prevent de-indent
       e.evt.preventDefault();
       // tab through item in context
       // get current value
-      var nextVal = select.children(':selected').next().val();
+      var nextVal = select.children(':selected').prev().val();
       select.val(nextVal);
-      console.log(nextVal);
+      // console.log(nextVal);
       if(!nextVal) nextVal = "dummy";
       e.editorInfo.ace_doContext(nextVal);
       // put caret back in correct place
-      console.log(e.rep.selStart, e.rep.selEnd);
+      // console.log(e.rep.selStart, e.rep.selEnd);
       e.editorInfo.ace_performSelectionChange(e.rep.selStart,e.rep.selEnd)
-      
     }
   }
 }
