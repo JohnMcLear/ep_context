@@ -204,7 +204,9 @@ exports.aceEditEvent = function(hook, call, cb){
   // reDraw last line button if we're setting up the document or it's changed at all
   if(cs.type === "setWraps" || cs.docTextChanged){
     reDrawLastLineButton(cs, documentAttributeManager, rep);
-    reDrawContextOnLeft(cs, documentAttributeManager, rep);
+    setTimeout(function(){
+      reDrawContextOnLeft(cs, documentAttributeManager, rep);
+    },200);
   }
 
   if(!(cs.type == "handleClick") && !(cs.type == "handleKeyEvent") && !(cs.docTextChanged)){
@@ -518,11 +520,14 @@ function reDrawContextOnLeft(cs, documentAttributeManager, rep){
   var padInner = $('iframe[name="ace_outer"]').contents().find('iframe[name="ace_inner"]');
   var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
   var contextContainer = padOuter.find('#contextContainer');
-  contextContainer.html("");
 
   // for each line
   var lines = padInner.contents().find("div");
 
+  // Timeout to avoid race condition
+  contextContainer.html("");
+
+  //get the line context
   $.each(lines, function(k, line){
 
     // get offset and height
@@ -530,9 +535,7 @@ function reDrawContextOnLeft(cs, documentAttributeManager, rep){
     var offsetHeight = $(line)[0].offsetHeight /2;
     var offset = offsetTop + offsetHeight;
 
-    //get the line context
     var context = documentAttributeManager.getAttributeOnLine(k, 'context');
-   
     if(context){
       // draw the context value on the screen
       contextContainer.append("<div class='contextLabel' style='top:"+offset+"px'>"+context+"</div>");
@@ -540,10 +543,6 @@ function reDrawContextOnLeft(cs, documentAttributeManager, rep){
       contextContainer.append("<div class='contextLabel nocontext' style='top:"+offset+"px'>No Context</div>");
     }
   });
-
-
-
-  // draw the context value on the screen
 }
 
 function reAssignContextToLastLineOfContextType(cs, documentAttributeManager, rep){
