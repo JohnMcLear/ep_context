@@ -64,8 +64,8 @@ exports.postAceInit = function(hook, context){
   });
   */
 
-  $(select).on("keypress", function(e){
-    if(e.keyCode === 13){
+  $(select).on("keydown", function(e){
+    if(e.keyCode === 13 || e.keyCode === 9){
       var newValue = $(select).val();
       context.ace.callWithAce(function(ace){
         ace.ace_doContext(newValue);
@@ -165,7 +165,7 @@ exports.postAceInit = function(hook, context){
         // Above is right..  But fucks up other editors on the page..
         ace.ace_performSelectionChange([newLineNumber,0],[newLineNumber,0])
         ace.ace_focus();
-        ace.ace_doContext(attr);
+        if(attr) ace.ace_doContext(attr);
       }, 'selChange', true);
 
       controlsContainer.hide();
@@ -190,11 +190,9 @@ function reDrawLastLineButton(cs, documentAttributeManager, rep){
 
   var padLength = rep.lines.length();
 
-  // This is kinda weird but basically EP stores line #1 as 1 not 0 so we reduce length
-  padLength = padLength-1;
-
   // padLength is reported as 0 on pad open..  Don't continue
   if(padLength === 0) return;
+
 
   // Check to see if lastLineButton is already in the right place..
   var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
@@ -237,7 +235,6 @@ exports.aceEditEvent = function(hook, call, cb){
   }
 
   if(cs.docTextChanged === true && cs.domClean === true && cs.repChanged === true && (cs.type === "handleKeyEvent" || cs.type === "context")){ 
-  console.log(call);
     // reAssignContextToLastLineOfContextType(cs, documentAttributeManager, rep);
     var lastLine = rep.selStart[0]-1;
     var thisLine = rep.selEnd[0];
@@ -506,6 +503,7 @@ exports.aceKeyEvent = function(hook, e){
       e.editorInfo.ace_performSelectionChange(e.rep.selStart,e.rep.selEnd)
     }
   }
+
 }
 
 function reDrawControls(lineNumber){
