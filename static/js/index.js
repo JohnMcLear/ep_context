@@ -261,6 +261,7 @@ exports.aceEditEvent = function(hook, call, cb){
     }
   }
 
+/*
   // It looks like we should check to see if this section has this attribute
   setTimeout(function(){ // avoid race condition..
     getLastContext(call, function(lastContext){
@@ -268,6 +269,7 @@ exports.aceEditEvent = function(hook, call, cb){
       $('.context-selection').val(lastContext);
     });
   },250);
+*/
 
   // If the text has changed in the pad I need to redraw the top of the select and the left arrow
 
@@ -277,21 +279,6 @@ exports.aceEditEvent = function(hook, call, cb){
   var controls = controlsContainer.find("#contextArrow");
 
 /*
-  // Does controls have a line Attr?
-  var lineNumber = controls.data("lineNumber");
-  if(lineNumber){
-    // Oh it does, then we better redraw the top of it.
-    // Firstly we need the actual line
-    var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
-    var padInner = padOuter.find('iframe[name="ace_inner"]').contents();
-    var line = padInner.find("#innerdocbody > div:nth-child("+lineNumber+")");
-    var offset = line[0].offsetTop + (line[0].offsetHeight/2);
-    // better do some math on that offset again..
-    // console.log("changing offset top to ", offset+"px");
-    controls.css("top", offset+"px");
-  }
-*/
-
   // It looks like we should check to see if this section has this attribute
   setTimeout(function(){ // avoid race condition..
     getLastContext(call, function(lastContext){
@@ -307,7 +294,7 @@ exports.aceEditEvent = function(hook, call, cb){
       }
     });
   },250);
-	
+*/	
     
 }
 
@@ -347,40 +334,17 @@ function doContext(level){
   var rep = this.rep;
   var documentAttributeManager = this.documentAttributeManager;
   var firstLine, lastLine;
+console.log(rep);
   firstLine = rep.selStart[0];
-  lastLine = Math.max(firstLine, rep.selEnd[0] - ((rep.selEnd[1] === 0) ? 1 : 0));
-  _(_.range(firstLine, lastLine + 1)).each(function(i){
-    // Does range already have attribute?  Commented out because stacking not required
-/*
-    var attributes = documentAttributeManager.getAttributeOnLine(i, 'context');
-    if(attributes || level){
-      // are attempting to remove a line attribute?
-      if(level === "dummy"){
-        // take last attribute from attributes, split it
-        var split = attributes.split("$");
-        // remove it and recreate new string
-        attributes = split.slice(0, split.length - 2).join("$");
-      }else{
-        if(attributes){
-          attributes = attributes + "$" + level
-        }else{
-          attributes = level;
-        }
-      }
-      if(attributes.length > 1){
-        // Temporary patch to not allow multiple contexts on a line
-        documentAttributeManager.setAttributeOnLine(i, 'context', attributes);
-      }else{
-        documentAttributeManager.removeAttributeOnLine(i, 'context');
-      }
-    }
-*/
+  // lastLine = Math.max(firstLine, rep.selEnd[0] - ((rep.selEnd[1] === 0) ? 1 : 0));
+  // _(_.range(firstLine, lastLine + 1)).each(function(i){
     if(level === "dummy"){
-      documentAttributeManager.removeAttributeOnLine(i, 'context');
+      documentAttributeManager.removeAttributeOnLine(firstLine, 'context');
     }else{
-      documentAttributeManager.setAttributeOnLine(i, 'context', level);
+      // console.log("set attr on", firstLine, level);
+      documentAttributeManager.setAttributeOnLine(firstLine, 'context', level);
     }
-  });
+//  });
 }
 
 // Get the context of a line
@@ -520,7 +484,13 @@ exports.aceKeyEvent = function(hook, e){
       // get current value
       var nextVal = select.children(':selected').next().val();
       select.val(nextVal);
+      console.log(nextVal);
+      if(!nextVal) nextVal = "dummy";
       e.editorInfo.ace_doContext(nextVal);
+      // put caret back in correct place
+      console.log(e.rep.selStart, e.rep.selEnd);
+      e.editorInfo.ace_performSelectionChange(e.rep.selStart,e.rep.selEnd)
+      
     }
   }
 }
