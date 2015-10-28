@@ -90,7 +90,7 @@ exports.getLineHTMLForExport = function (hook, line) {
 // clean up HTML into something sane
 exports.exportHTMLSend = function(hook, html, cb){
 //  var blockElements = ["Section", "Paragraph", "Subsection", "Form", "Distribution-code", "Congress", "Session", "Header", "Enum"];
-  var blockElements = ["Sponsor", "Title", "Whereas", "Resolved", "Signature", "Date"];
+  var blockElements = ["Sponsor", "Title", "Whereas", "Resolved", "Signature", "Date", "LastWhereas"];
   sanitize.exec(html, blockElements, function(error, cleanedHTML){
     cb(cleanedHTML);
   });
