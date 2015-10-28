@@ -212,7 +212,7 @@ exports.aceEditEvent = function(hook, call, cb){
   }
 
   if(cs.docTextChanged === true && cs.domClean === true && cs.repChanged === true && (cs.type === "handleKeyEvent" || cs.type === "context")){ 
-    reAssignContextToLastLineOfContextType(cs, documentAttributeManager, rep);
+    // reAssignContextToLastLineOfContextType(cs, documentAttributeManager, rep);
     console.log("reherping the last line");
     var lastLine = rep.selStart[0]-1;
     var thisLine = rep.selEnd[0];
@@ -252,7 +252,6 @@ exports.aceEditEvent = function(hook, call, cb){
           // This bit appears to be broken, todo
           // var blankLine = (call.rep.alines[thisLine] === "*0|1+1");
           // if(!blankLine) return;
-console.log("HEY", attributes);
           if(attributes === "lastwhereas") attributes = "whereas";
           documentAttributeManager.setAttributeOnLine(thisLine, 'context', attributes);
         }
@@ -479,10 +478,34 @@ function cleanArray(actual){
 // before the DOM is redrawn
 exports.aceKeyEvent = function(hook, e){
   
-  $('iframe[name="ace_outer"]').contents().find('#contextButtonsContainer').hide();
-  $('iframe[name="ace_outer"]').contents().find('.context-selection').hide();
-  if(e.evt.keyCode !== 13){
+  var rep = e.rep;
+  var evt = e.evt;
+
+  var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
+  var padInner = $('iframe[name="ace_outer"]').contents().find('iframe[name="ace_inner"]');
+  var select = $('iframe[name="ace_outer"]').contents().find('.context-selection');
+
+  if(evt.keyCode !== 13 && !evt.shiftKey){
+    padOuter.contents().find('#contextButtonsContainer').hide();
+    padOuter.contents().find('.context-selection').hide();
+  }
+
+  // if we don't hit enter then reset crude Enter Counter
+  if(evt.keyCode !== 13){
     clientVars.plugins.plugins.ep_context.crudeEnterCounter = 0;
+  }
+
+  // If we do hit enter and shift then show select and drop focus into it?
+  if(evt.keyCode === 13 && evt.shiftKey && evt.type === "keydown"){
+    var lineNumber = rep.selStart[0]+1;
+    var line = padInner.contents().find("div:nth-child("+lineNumber+")");
+    var offset = line[0].offsetTop + (line[0].offsetHeight/2) + 13;
+    select.css("position", "absolute");
+    select.css("top", offset+"px");
+    select.data("lineNumber", lineNumber);
+    $(select).attr('size', styles.length+1).show().css("position", "absolute");
+    e.evt.preventDefault(); // Prevent default behavior
+    return true;
   }
 }
 
@@ -565,16 +588,10 @@ function reAssignContextToLastLineOfContextType(cs, documentAttributeManager, re
   // Check to see if the line after it already is lastwhere 
   var nextContext = documentAttributeManager.getAttributeOnLine(lastLine+1, 'context');
 
-  console.log("herp", nextContext);
-
-  console.log("context", context);
-
   if(context === "Whereas" && context !== "lastWhereas" && nextContext !== "lastwhereas"){
     documentAttributeManager.removeAttributeOnLine(lastLine, 'context');
     documentAttributeManager.setAttributeOnLine(lastLine, 'context', 'lastwhereas');
   }
-
-//cake
 
   // If not, remove contextwhereas and apply contextlastwhereas
   console.log("reassigning");
