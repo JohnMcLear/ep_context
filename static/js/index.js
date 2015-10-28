@@ -36,7 +36,7 @@ exports.postAceInit = function(hook, context){
   var contextContainer = '<div id="contextContainer" class="contextContainer"><div style="position:absolute; margin-left:-50px; width:100%; top:10px;"></div></div>';
   var optionsHTML = $('.context').html();
   var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
-  var padInner = padOuter.contents().find('#innerdocbody');
+  var padInner = padOuter.find('iframe[name="ace_inner"]').contents();
 
   // Add control stuff to the UI
   padOuter.find("#sidediv").after(bigButtonHTML);
@@ -56,6 +56,10 @@ exports.postAceInit = function(hook, context){
     context.ace.callWithAce(function(ace){
       ace.ace_doContext(newValue);
     },'context' , true);
+
+    // Re-focus our powers!
+    var innerdoc = padInner[0];
+    $(innerdoc).contents().find("body").blur().focus();
   });
 
   $(select).change(function(contextValue){
@@ -64,6 +68,10 @@ exports.postAceInit = function(hook, context){
       ace.ace_doContext(newValue);
     },'context' , true);
     select.hide();
+
+    // Re-focus our powers!
+    var innerdoc = padInner[0];
+    $(innerdoc).contents().find("body").blur().focus();
   });
 
   context.ace.callWithAce(function(ace){
