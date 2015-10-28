@@ -89,3 +89,7 @@ contextresolved::before {
 contextresolved::after {
   content: '; and';
 }
+
+.nocontext{
+  color:red;
+}

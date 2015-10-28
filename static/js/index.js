@@ -459,8 +459,8 @@ exports.aceKeyEvent = function(hook, e){
     clientVars.plugins.plugins.ep_context.crudeEnterCounter = 0;
   }
 
-  // If we do hit enter and shift then show select and drop focus into it?
-  if(evt.keyCode === 13 && evt.shiftKey && evt.type === "keydown"){
+  // If we do hit space and shift then show select and drop focus into it?
+  if(evt.keyCode === 32 && evt.shiftKey && evt.type === "keydown"){
     var lineNumber = rep.selStart[0]+1;
     var line = padInner.contents().find("div:nth-child("+lineNumber+")");
     var offset = line[0].offsetTop + (line[0].offsetHeight/2) + 13;
@@ -520,7 +520,6 @@ function reDrawContextOnLeft(cs, documentAttributeManager, rep){
   var contextContainer = padOuter.find('#contextContainer');
   contextContainer.html("");
 
-
   // for each line
   var lines = padInner.contents().find("div");
 
@@ -537,6 +536,8 @@ function reDrawContextOnLeft(cs, documentAttributeManager, rep){
     if(context){
       // draw the context value on the screen
       contextContainer.append("<div class='contextLabel' style='top:"+offset+"px'>"+context+"</div>");
+    }else{
+      contextContainer.append("<div class='contextLabel nocontext' style='top:"+offset+"px'>No Context</div>");
     }
   });
 
