@@ -239,7 +239,6 @@ exports.aceEditEvent = function(hook, call, cb){
   if(cs.docTextChanged === true && cs.domClean === true && cs.repChanged === true && (cs.type === "handleKeyEvent" || cs.type === "context")){ 
   console.log(call);
     // reAssignContextToLastLineOfContextType(cs, documentAttributeManager, rep);
-    console.log("reherping the last line");
     var lastLine = rep.selStart[0]-1;
     var thisLine = rep.selEnd[0];
     var padLength = rep.lines.length();
@@ -350,16 +349,16 @@ function doContext(level){
   var documentAttributeManager = this.documentAttributeManager;
   var firstLine, lastLine;
   firstLine = rep.selStart[0];
-  // lastLine = Math.max(firstLine, rep.selEnd[0] - ((rep.selEnd[1] === 0) ? 1 : 0));
-  // _(_.range(firstLine, lastLine + 1)).each(function(i){
+  lastLine = Math.max(firstLine, rep.selEnd[0] - ((rep.selEnd[1] === 0) ? 1 : 0));
+  _(_.range(firstLine, lastLine + 1)).each(function(i){
     if(level === "dummy"){
       // console.log("removing attribute on line");
-      documentAttributeManager.removeAttributeOnLine(firstLine, 'context');
+      documentAttributeManager.removeAttributeOnLine(i, 'context');
     }else{
       // console.log("set attr on", firstLine, level);
-      documentAttributeManager.setAttributeOnLine(firstLine, 'context', level);
+      documentAttributeManager.setAttributeOnLine(i, 'context', level);
     }
-//  });
+  });
 }
 
 // Get the context of a line
