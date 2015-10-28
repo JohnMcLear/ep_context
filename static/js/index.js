@@ -263,16 +263,6 @@ exports.aceEditEvent = function(hook, call, cb){
     }
   }
 
-/*
-  // It looks like we should check to see if this section has this attribute
-  setTimeout(function(){ // avoid race condition..
-    getLastContext(call, function(lastContext){
-      // Show this context as being enabled.
-      $('.context-selection').val(lastContext);
-    });
-  },250);
-*/
-
   // If the text has changed in the pad I need to redraw the top of the select and the left arrow
 
   // COMMENTED OUT: This is because this logic actually makes the UX way worst as your select can move away from your cursor position
@@ -280,7 +270,6 @@ exports.aceEditEvent = function(hook, call, cb){
   var select = controlsContainer.find(".context-selection");
   var controls = controlsContainer.find("#contextArrow");
 
-/*
   // It looks like we should check to see if this section has this attribute
   setTimeout(function(){ // avoid race condition..
     getLastContext(call, function(lastContext){
@@ -296,7 +285,6 @@ exports.aceEditEvent = function(hook, call, cb){
       }
     });
   },250);
-*/	
     
 }
 
