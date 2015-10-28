@@ -51,6 +51,12 @@ margin-left:35px;
   cursor:pointer;
 }
 
+.context-selection option:nth-child(1){
+  font-weight:bold;
+  font-size:14px;
+  color:red;
+}
+
 /* Specific Context Styling */
 
 contexttitle {
