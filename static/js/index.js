@@ -20,10 +20,6 @@ exports.postAceInit = function(hook, context){
   var inner = $('iframe[name="ace_outer"]').contents().find('iframe[name="ace_inner"]');
   var head = inner.contents().find("head");
 
-  // $.each(stylesCSS, function(k,css){
-  //   head.append("<style>"+css+"</style>");
-  // });
-
   var contextControlsContainerHTML = '<div id="contextButtonsContainer" style="display:block;z-index:1;margin-left:50px;"></div>';
   var buttonsHTML = '<div id="contextArrow" class="contextButton" unselectable="on">></div>';
   buttonsHTML += '<div id="deleteLineButton" class="contextButton" unselectable="on">-</div>';
@@ -48,7 +44,7 @@ exports.postAceInit = function(hook, context){
 
   // Selection event
   /*
-  $('.context-selection').change(function(contextValue){
+  $('.context-selection').click(function(contextValue){
     var newValue = $('.context-selection').val();
     context.ace.callWithAce(function(ace){
       ace.ace_doContext(newValue);
@@ -61,6 +57,17 @@ exports.postAceInit = function(hook, context){
   */
 
   $(select).on("keydown", function(e){
+   
+    // On tab key of select  
+    if(e.keyCode === 9){
+      var newValue = select.find("option:selected").next().val();
+      if (!newValue) var newValue = "dummy";
+      select.val(newValue);
+      e.preventDefault();
+      return;
+    }
+
+    // On arrow keys of select
     if(e.keyCode === 13 || e.keyCode === 9){
       var newValue = $(select).val();
       context.ace.callWithAce(function(ace){
@@ -242,7 +249,7 @@ exports.aceEditEvent = function(hook, call, cb){
     if(attributes){
       // First thing first we are seeing if its a big button push
       if(cs.type === "context"){
-        console.log("big button push", thisLine, attributes);
+        // console.log("big button push", thisLine, attributes);
         documentAttributeManager.setAttributeOnLine(padLength-2, 'context', attributes);
         // Now we need to move caret to here..
       }else{
