@@ -4,10 +4,6 @@ var _ = require('ep_etherpad-lite/static/js/underscore');
 
 var styles = ["Sponsor", "Title", "Whereas", "Resolved", "Signature", "Date"];
 
-/*****
-* Basic setup
-******/
-
 // Bind the event handler to the toolbar buttons
 exports.postAceInit = function(hook, context){
   // Put the styles available as external so things like table of contents can smell them
@@ -253,6 +249,7 @@ exports.aceEditEvent = function(hook, call, cb){
         // The line did have attributes so set them on the new line
         // But before we apply a new attribute we should see if we're supposed to be dropping an context layer
         if(clientVars.plugins.plugins.ep_context.crudeEnterCounter >= 1){
+          /*
           var split = attributes.split("$");
           // remove it and recreate new string
           if(split.length > 1){
@@ -269,12 +266,13 @@ exports.aceEditEvent = function(hook, call, cb){
             documentAttributeManager.removeAttributeOnLine(thisLine-1, 'context');
           }
           return true;
+          */
         }else{ // first enter will keep the attribute
           // Make sure the line doesn't have any content in already
           // This bit appears to be broken, todo
           // This is also needed for an event that isn't actually an enter key
-          var blankLine = (call.rep.alines[thisLine] === "*0|1+1");
-          if(!blankLine) return;
+          // var blankLine = (call.rep.alines[thisLine] === "*0|1+1");
+          // if(!blankLine) return;
           if(attributes === "lastwhereas") attributes = "whereas";
           documentAttributeManager.setAttributeOnLine(thisLine, 'context', attributes);
         }
