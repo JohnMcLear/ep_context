@@ -92,3 +92,10 @@ contextresolved::after {
 .nocontext{
   color:red;
 }
+
+#shift, #spacebar{
+  margin-top:-20px;
+  cursor: help;
+  opacity:0.4;
+  width:auto;
+}

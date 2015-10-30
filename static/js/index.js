@@ -21,6 +21,7 @@ exports.postAceInit = function(hook, context){
   var head = inner.contents().find("head");
 
   var contextControlsContainerHTML = '<div id="contextButtonsContainer" style="display:block;z-index:1;margin-left:50px;"></div>';
+  var floatingIcons = '<div title="Press Shift and Space to bring up Context Options"><div id="shift" class="contextButton">&#8679;</div><div id="spacebar" class="contextButton">&#9251;</div></div>';
   var buttonsHTML = '<div id="contextArrow" class="contextButton" unselectable="on">></div>';
   buttonsHTML += '<div id="deleteLineButton" class="contextButton" unselectable="on">-</div>';
   buttonsHTML += '<div id="newLineButton" class="contextButton" unselectable="on">+</div>';
@@ -34,13 +35,13 @@ exports.postAceInit = function(hook, context){
   padOuter.find("#sidediv").after(bigButtonHTML);
   padOuter.find("#sidediv").after(contextControlsContainerHTML);
   padOuter.find("#sidediv").after(contextContainer);
-  padOuter.find("#contextButtonsContainer").html(buttonsHTML);
+  padOuter.find("#contextButtonsContainer").html(floatingIcons + buttonsHTML);
   padOuter.find("#contextButtonsContainer").append(optionsHTML);
 
   var controlsContainer = padOuter.find("#contextButtonsContainer")
   var select = controlsContainer.find(".context-selection");
   $(select).hide();
-  var controls = controlsContainer.find("#contextArrow, #newLineButton, #deleteLineButton");
+  var controls = controlsContainer.find("#contextArrow, #newLineButton, #deleteLineButton, #shift, #spacebar");
 
   // Selection event
   /*
@@ -516,7 +517,7 @@ function reDrawControls(lineNumber){
   var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
   var controlsContainer = padOuter.find("#contextButtonsContainer")
   var select = controlsContainer.find(".context-selection");
-  var controls = controlsContainer.find("#contextArrow, #newLineButton, #deleteLineButton");
+  var controls = controlsContainer.find("#contextArrow, #newLineButton, #deleteLineButton, #shift, #spacebar");
 
   var line = padInner.contents().find("div").eq(lineNumber);
   var offsetTop = line[0].offsetTop || 0;
