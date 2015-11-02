@@ -145,7 +145,7 @@ exports.postAceInit = function(hook, context){
       select.css("top", offset+"px");
       select.data("lineNumber", lineNumber);
       $(select).show();
-      $(select).attr('size', styles.length+1); // TODO dont be hardcoded
+      $(select).attr('size', styles.length+1);
     });
 
 
@@ -251,7 +251,8 @@ exports.aceEditEvent = function(hook, call, cb){
       // First thing first we are seeing if its a big button push
       if(cs.type === "context"){
         // console.log("big button push", thisLine, attributes);
-        documentAttributeManager.setAttributeOnLine(padLength-2, 'context', attributes);
+        // documentAttributeManager.setAttributeOnLine(padLength-2, 'context', attributes);
+        // Commented out because it can cause the wrong attribute to be set on the line -2 from padLength
         // Now we need to move caret to here..
       }else{
         // The line did have attributes so set them on the new line
