@@ -4,17 +4,6 @@ var sanitize = require('./sanitizer.js').sanitize;
 var Security = require('ep_etherpad-lite/static/js/security'); 
 var _encodeWhitespace = require('ep_etherpad-lite/node/utils/ExportHelper')._encodeWhitespace;
 
-/*
-var stylesCSS = ["contextparagraph{margin-left:10px;color:green;}",
-  "contextform{text-align:center;display:block;}",
-  "contextsection > contextheader, contextsection > contextenum{text-align:center;display:block;}",
-  "contextenum{font-weight:bolder;}",
-  "contextheader{font-weight:bolder;}",
-  "contextcongress{font-variant: small-caps;}",
-  "contextsession{font-variant: small-caps;}",
-  "contextsubsection{margin-left:15px;color:blue;}",
-  "contextdistribution-code{text-align:right;display:block;}"]
-*/
 var stylesCSS = ["contexttitle{text-align:center;display:block;font-size:18px;line-height:20px;}",
   "contextwhereas::before{content: 'Whereas '}"];
 
@@ -76,12 +65,19 @@ exports.getLineHTMLForExport = function (hook, line) {
 
   if (contexts.length) {
     contexts.forEach(function(contextV){
-      before += "<context" + contextV + ">";
-      after += "</context" + contextV + ">";
+      before += "<p class='context" + contextV + "'>";
+      after += "</p>";
+
+      // TODO, ensure this is not hard coded..  Impossible to parse CSS prolly so need a decent solution
+      if(contextV === "Whereas"){
+        before += "Whereas, "
+        after += "and";
+      }
     });
     // Remove leading * else don't..
     var newString = before + line.lineContent.substring(1) + after + "<br>";
     return newString;
+  
   }else{ // no context, nothing to remove
     return line.lineContent;
   }
@@ -89,9 +85,10 @@ exports.getLineHTMLForExport = function (hook, line) {
 
 // clean up HTML into something sane
 exports.exportHTMLSend = function(hook, html, cb){
-//  var blockElements = ["Section", "Paragraph", "Subsection", "Form", "Distribution-code", "Congress", "Session", "Header", "Enum"];
   var blockElements = ["Sponsor", "Title", "Whereas", "Resolved", "Signature", "Date", "LastWhereas"];
+  console.warn("um okay");
   sanitize.exec(html, blockElements, function(error, cleanedHTML){
+    console.warn(cleanHTML);
     cb(cleanedHTML);
   });
 }
