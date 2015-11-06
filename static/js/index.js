@@ -618,7 +618,11 @@ function handlePaste(context){
   $.each(lines, function(index, line){
     var lineText = $(line).text();
     // See if the line has the whereas content
-    if(lineText.toLowerCase().indexOf("whereas") === 0){
+    var cleanLineText = lineText.toLowerCase();
+    var strPos = cleanLineText.indexOf("whereas");
+    cleanLineText = cleanLineText.trim();
+
+    if(cleanLineText.indexOf("whereas") === 0){
       // If line has where whereas content then
       // console.log("This line has whereas text", lineText, index);
       // move caret to this location
@@ -635,9 +639,9 @@ function handlePaste(context){
         var attributeLength = context.documentAttributeManager.rep.alines[lineNumber].length;
         if(attributeLength <= 8){
           // console.log(context, attributeLength);
-          ace.ace_replaceRange([lineNumber,0], [lineNumber,8], "");
+          ace.ace_replaceRange([lineNumber,0], [lineNumber,strPos+9], "");
         }else{
-          ace.ace_replaceRange([lineNumber,1], [lineNumber,9], "");
+          ace.ace_replaceRange([lineNumber,1], [lineNumber,strPos+10], "");
         }
 
         // assign whereas attribute
