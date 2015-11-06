@@ -9,7 +9,7 @@ exports.acePaste = function(hook, context){
   // TODO, replace setTimeout with something more sane..  I think we 
   // should let the paste event bubble through aceEditEvent or so..
   setTimeout(function(){
-    context.editorInfo.ace_handlePaste(context);
+    handlePaste(context);
   }, 250);
 }
 
@@ -358,8 +358,8 @@ exports.collectContentLineText = function(hook, context){
 // Passing a level >= 0 will set a context on the selected lines, level < 0 
 // will remove it
 function doContext(level){
-  var documentAttributeManager = this.documentAttributeManager;
   var rep = this.rep;
+  var documentAttributeManager = this.documentAttributeManager;
   var firstLine, lastLine;
   firstLine = rep.selStart[0];
   lastLine = Math.max(firstLine, rep.selEnd[0] - ((rep.selEnd[1] === 0) ? 1 : 0));
@@ -409,7 +409,6 @@ function getLineContext(lineNumber){
 exports.aceInitialized = function(hook, context){
   var editorInfo = context.editorInfo;
   editorInfo.ace_doContext = _(doContext).bind(context);
-  editorInfo.ace_handlePaste = _(handlePaste).bind(context);
   editorInfo.ace_getLineContext = _(getLineContext).bind(context);
 }
 
@@ -592,7 +591,7 @@ function reAssignContextToLastLineOfContextType(cs, documentAttributeManager, re
 
   if(!lastLine) return;
 
-  // console.log("last line with whereas is", lastLine);
+  console.log("last line with whereas is", lastLine);
 
   // Check to see if this line number already has lastwhere context value
   var context = documentAttributeManager.getAttributeOnLine(lastLine, 'context');
@@ -610,7 +609,6 @@ function reAssignContextToLastLineOfContextType(cs, documentAttributeManager, re
 }
 
 function handlePaste(context){
-  var that = this;
   // Get each line
   var lines = $('iframe[name="ace_outer"]').contents().find('iframe').contents().find("#innerdocbody").children("div");
 
@@ -618,34 +616,29 @@ function handlePaste(context){
   $.each(lines, function(index, line){
     var lineText = $(line).text();
     // See if the line has the whereas content
-    if(lineText.toLowerCase().indexOf("whereas") === 0){
+    if(lineText.toLowerCase().indexOf("whereas") !== -1){
       // If line has where whereas content then
-      // console.log("This line has whereas text", lineText, index);
+      console.log("This line has whereas text", lineText, index);
       // move caret to this location
 
       var lineNumber = index;
 
       context.editorInfo.ace_callWithAce(function(ace){
-        // console.log("replacing content on ", lineNumber);
-
-        // remove "whereas " content from string
+        ace.ace_focus();
+        rep = ace.ace_getRep();
+        console.log("replacing content on ", lineNumber);
         // TODO if line has line attribute marker this will be wrong
         // Check if the line already has an attribute maker and if so bump 0 to 1 and 8 to 9
-        // HACK I don't think this is the best way but for now it will do..
-        var attributeLength = context.documentAttributeManager.rep.alines[lineNumber].length;
-        if(attributeLength <= 8){
-          // console.log(context, attributeLength);
-          ace.ace_replaceRange([lineNumber,0], [lineNumber,8], "");
-        }else{
-          ace.ace_replaceRange([lineNumber,1], [lineNumber,9], "");
-        }
-
-        // assign whereas attribute
-        // that.editorInfo.ace_doContext('whereas', lineNumber, lineNumber);
-        // The above is broken and I have no idea why, each time I rewrite I end up with
-        // Uncaught TypeError: Cannot read property 'editEvent'
-        // So for now it's commented out!
+        
+        ace.ace_replaceRange([lineNumber,0], [lineNumber,8], "");
+        // ace.ace_performSelectionChange([0,0],[0,0], true);
       });
+
+      // assign whereas attribute
+//      context.documentAttributeManager.setAttributeOnLine(index, 'context', 'whereas');
+      // remove "whereas " content from string
+
     }
   });
+  console.log(context);
 }

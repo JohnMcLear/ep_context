@@ -13,7 +13,8 @@
         "aceInitialized": "ep_context/static/js/index",
         "collectContentLineText": "ep_context/static/js/index",
         "aceKeyEvent": "ep_context/static/js/index",
-        "aceEditorCSS": "ep_context/static/js/context"
+        "aceEditorCSS": "ep_context/static/js/context",
+	"acePaste": "ep_context/static/js/index"
       },
       "hooks": {
         "eejsBlock_editbarMenuLeft": "ep_context/index",
