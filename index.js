@@ -70,7 +70,7 @@ exports.getLineHTMLForExport = function (hook, line) {
       // TODO, ensure this is not hard coded..  Impossible to parse CSS prolly so need a decent solution
       if(contextV === "Whereas"){
         before += "Whereas, "
-        after += "and";
+        after += ", and";
       }
 
       after += "</p>";
