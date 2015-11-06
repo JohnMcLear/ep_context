@@ -66,13 +66,14 @@ exports.getLineHTMLForExport = function (hook, line) {
   if (contexts.length) {
     contexts.forEach(function(contextV){
       before += "<p class='context" + contextV + "'>";
-      after += "</p>";
 
       // TODO, ensure this is not hard coded..  Impossible to parse CSS prolly so need a decent solution
       if(contextV === "Whereas"){
         before += "Whereas, "
         after += "and";
       }
+
+      after += "</p>";
     });
     // Remove leading * else don't..
     var newString = before + line.lineContent.substring(1) + after + "<br>";
