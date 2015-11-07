@@ -67,8 +67,7 @@ exports.postAceInit = function(hook, context){
   */
 
   $(select).on("keydown", function(e){
-   
-    // On tab key of select  
+    // On tab key of select
     if(e.keyCode === 9){
       var newValue = select.find("option:selected").next().val();
       if (!newValue) var newValue = "dummy";
@@ -279,7 +278,7 @@ exports.aceEditEvent = function(hook, call, cb){
             // no more attributes left so remove it
             // documentAttributeManager.setAttributeOnLine(thisLine, 'context', ['null']);
             documentAttributeManager.removeAttributeOnLine(thisLine, 'context');
-            // remove on previous line too	
+            // remove on previous line too
             // documentAttributeManager.setAttributeOnLine(thisLine-1, 'context', ['null']);
             documentAttributeManager.removeAttributeOnLine(thisLine-1, 'context');
           }
@@ -469,7 +468,6 @@ function cleanArray(actual){
 // so you don't get double line enters as the attributes are atetmpted to be added
 // before the DOM is redrawn
 exports.aceKeyEvent = function(hook, e){
-  
   var rep = e.rep;
   var evt = e.evt;
 
