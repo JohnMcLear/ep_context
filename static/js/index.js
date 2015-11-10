@@ -677,18 +677,32 @@ function handlePaste(context){
       context.editorInfo.ace_callWithAce(function(ace){
         // console.log("replacing content on ", lineNumber);
 
+        var startLocation = 0;
+        var endLocation = 9;
+
         // remove "whereas " content from string
         // TODO if line has line attribute marker this will be wrong
         // Check if the line already has an attribute maker and if so bump 0 to 1 and 8 to 9
         // HACK I don't think this is the best way but for now it will do..
         var attributeLength = context.documentAttributeManager.rep.alines[lineNumber].length;
-        if(attributeLength <= 8){
-          // console.log(context, attributeLength);
-          ace.ace_replaceRange([lineNumber,0], [lineNumber,strPos+9], "");
-        }else{
-          ace.ace_replaceRange([lineNumber,1], [lineNumber,strPos+10], "");
+        if(attributeLength > 8){
+          startLocation = 1;
+          endLocation = 10;
         }
 
+        // Check to see if there is any white space prefixing the string.
+        var stringWithoutWhereas = cleanLineText.substring(9,cleanLineText.length);
+        // console.log(stringWithoutWhereas);
+        var regex = /^\s*/;
+        var numberOfPrefixSpaces = stringWithoutWhereas.match(regex)[0].length;
+        // console.log("Number of Prefix Spaces", numberOfPrefixSpaces);
+        if(numberOfPrefixSpaces){
+          endLocation = endLocation + numberOfPrefixSpaces;
+        }
+        ace.ace_replaceRange([lineNumber,startLocation], [lineNumber,strPos+endLocation], "");
+ 
+
+	// CAKEK TODOODOODDO
         // assign whereas attribute
         // that.editorInfo.ace_doContext('whereas', lineNumber, lineNumber);
         // The above is broken and I have no idea why, each time I rewrite I end up with
