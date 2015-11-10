@@ -273,7 +273,7 @@ exports.aceEditEvent = function(hook, call, cb){
           // var blankLine = (call.rep.alines[thisLine] === "*0|1+1");
           // if(!blankLine) return;
           if(attributes === "lastwhereas") attributes = "Whereas";
-console.log("Setting attribute On Line", attributes);
+          // console.log("Setting attribute On Line", attributes);
           documentAttributeManager.setAttributeOnLine(thisLine, 'context', attributes);
         }
         clientVars.plugins.plugins.ep_context.crudeEnterCounter++;
@@ -608,6 +608,7 @@ function reAssignContextToLastLineOfContextType(cs, documentAttributeManager, re
     console.log("thisLine", thisLine);
     console.log("nextLine", nextLine);
 */
+
     // REMOVE LASTLINE
     // If this line has lastwhereas context AND the next line has whereas then this line should not have lastwhereas
     // So remove it..
@@ -620,7 +621,7 @@ function reAssignContextToLastLineOfContextType(cs, documentAttributeManager, re
     // ADD LASTLINE
     // If this line has context and the next line doesn't, then this line should get lastwhereas
     if(thisLine.hasContext && !nextLine.hasContext && prevLine.hasContext){
-      console.log("setting last line on ", lineNumber, thisLine);
+      // console.log("setting last line on ", lineNumber, thisLine);
       // Check to see if this line number already has lastwhere context value
       var context = documentAttributeManager.getAttributeOnLine(lineNumber, 'context');
       console.log("Current context of line", lineNumber, context);
@@ -630,27 +631,6 @@ function reAssignContextToLastLineOfContextType(cs, documentAttributeManager, re
       }
 
     }
-
-    /*
-    var lineNumber = line+1;
-
-    if(!lastLine) return;
-    // console.log("last line with whereas is", lastLine);
-
-    // Check to see if this line number already has lastwhere context value
-    var context = documentAttributeManager.getAttributeOnLine(lastLine, 'context');
-
-    // Check to see if the line after it already is lastwhere 
-    var nextContext = documentAttributeManager.getAttributeOnLine(lastLine+1, 'context');
-
-    if(context === "Whereas" && context !== "lastWhereas" && nextContext !== "lastwhereas"){
-      documentAttributeManager.removeAttributeOnLine(lastLine, 'context');
-      documentAttributeManager.setAttributeOnLine(lastLine, 'context', 'lastwhereas');
-    }
-
-    // If not, remove contextwhereas and apply contextlastwhereas
-    // console.log("reassigning derp");
-    */
   });
 }
 
