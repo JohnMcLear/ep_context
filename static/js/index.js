@@ -247,7 +247,7 @@ exports.aceEditEvent = function(hook, call, cb){
   }
 
   if(cs.docTextChanged === true && cs.domClean === true && cs.repChanged === true && (cs.type === "handleKeyEvent" || cs.type === "context")){ 
-    // reAssignContextToLastLineOfContextType(cs, documentAttributeManager, rep);
+    // Define variables
     var lastLine = rep.selStart[0]-1;
     var thisLine = rep.selEnd[0];
     var padLength = rep.lines.length();
@@ -266,37 +266,25 @@ exports.aceEditEvent = function(hook, call, cb){
         // The line did have attributes so set them on the new line
         // But before we apply a new attribute we should see if we're supposed to be dropping an context layer
         if(clientVars.plugins.plugins.ep_context.crudeEnterCounter >= 1){
-          /*
-          var split = attributes.split("$");
-          // remove it and recreate new string
-          if(split.length > 1){
-            attributes = split.slice(0, split.length - 1).join("$");
-            documentAttributeManager.setAttributeOnLine(thisLine, 'context', attributes);
-            // remove on previous line too
-            documentAttributeManager.setAttributeOnLine(thisLine-1, 'context', attributes);
-          }else{
-            // no more attributes left so remove it
-            // documentAttributeManager.setAttributeOnLine(thisLine, 'context', ['null']);
-            documentAttributeManager.removeAttributeOnLine(thisLine, 'context');
-            // remove on previous line too
-            // documentAttributeManager.setAttributeOnLine(thisLine-1, 'context', ['null']);
-            documentAttributeManager.removeAttributeOnLine(thisLine-1, 'context');
-          }
-          return true;
-          */
         }else{ // first enter will keep the attribute
           // Make sure the line doesn't have any content in already
           // This bit appears to be broken, todo
           // This is also needed for an event that isn't actually an enter key
           // var blankLine = (call.rep.alines[thisLine] === "*0|1+1");
           // if(!blankLine) return;
-          if(attributes === "lastwhereas") attributes = "whereas";
+          if(attributes === "lastwhereas") attributes = "Whereas";
+console.log("Setting attribute On Line", attributes);
           documentAttributeManager.setAttributeOnLine(thisLine, 'context', attributes);
         }
         clientVars.plugins.plugins.ep_context.crudeEnterCounter++;
       }
-      return true;
     }
+  }
+
+  // Todo, this is too agressive on events but it doesn't fire on drag/drop!
+  if(cs.domClean === false && (cs.type === "handleKeyEvent" || cs.type === "context" || cs.type === "handleClick")){
+    // Reassign last line to lastwhereas
+    reAssignContextToLastLineOfContextType(cs, documentAttributeManager, rep);
   }
 
   // If the text has changed in the pad I need to redraw the top of the select and the left arrow
@@ -570,41 +558,100 @@ function reDrawContextOnLeft(cs, documentAttributeManager, rep){
 }
 
 function reAssignContextToLastLineOfContextType(cs, documentAttributeManager, rep){
+  console.log("reassigning");
   // Iterate through document
   var padInner = $('iframe[name="ace_outer"]').contents().find('iframe[name="ace_inner"]');
   var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
 
   // for each line
   var lines = padInner.contents().find("div");
-  var lastLine = 0;
+  var contexts = {};
 
   $.each(lines, function(k, line){
+    contexts[k] = {};
+    // console.log("line", line);
+
     // Find last contextwhereas
-    var hasContext = $(line).find("contextwhereas");
-    isLastLine = $(hasContext).find("wherewhereaslastline").length;
-    if(hasContext.length && !isLastLine){
-      // Get the line number of the last one
-      lastLine = k;
+    var hasContext = $(line).find("contextwhereas, contextlastwhereas");
+    // If the line is whereas or lastwhereas context store this data in an object
+    if(!hasContext) return;
+    if(hasContext.length > 0){
+      contexts[k].hasContext = true;
+    }
+    var isLastLine = $(line).find("contextlastwhereas");
+    if(isLastLine.length > 0){
+      // If the line is whereas or lastwhereas context store this data in an object
+      contexts[k].hasLastLine = true;
     }
   });
 
-  if(!lastLine) return;
+  // Go through our existing object and check to see if it's right..
+  $.each(contexts, function(k, line){
+    var lineNumber = parseInt(k);
+    var thisLine = line;
+    var nextLine = {};
+    var prevLine = {};
+    var sizeOfContexts = Object.size(contexts);
 
-  // console.log("last line with whereas is", lastLine);
+    // If this is not the first line get the values of the previous line
+    if (k > 0){
+      prevLine = contexts[k-1];
+    }
+    // If this is not the last line get the values of the next line
+    if (k < sizeOfContexts){
+      var nextLineKey = parseInt(k)+1;
+      if(contexts[nextLineKey]) nextLine = contexts[nextLineKey];
+    }
 
-  // Check to see if this line number already has lastwhere context value
-  var context = documentAttributeManager.getAttributeOnLine(lastLine, 'context');
+/*
+    console.log("prevLine", prevLine);
+    console.log("thisLine", thisLine);
+    console.log("nextLine", nextLine);
+*/
+    // REMOVE LASTLINE
+    // If this line has lastwhereas context AND the next line has whereas then this line should not have lastwhereas
+    // So remove it..
+    if(thisLine.hasLastLine && nextLine.hasContext){
+      documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
+      documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'Whereas');
+      console.log("removing lastwhereas from ", lineNumber, thisLine)
+    }
 
-  // Check to see if the line after it already is lastwhere 
-  var nextContext = documentAttributeManager.getAttributeOnLine(lastLine+1, 'context');
+    // ADD LASTLINE
+    // If this line has context and the next line doesn't, then this line should get lastwhereas
+    if(thisLine.hasContext && !nextLine.hasContext && prevLine.hasContext){
+      console.log("setting last line on ", lineNumber, thisLine);
+      // Check to see if this line number already has lastwhere context value
+      var context = documentAttributeManager.getAttributeOnLine(lineNumber, 'context');
+      console.log("Current context of line", lineNumber, context);
+      if(context !== "lastWhereas" && context === "Whereas"){
+        documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
+        documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'lastwhereas');
+      }
 
-  if(context === "Whereas" && context !== "lastWhereas" && nextContext !== "lastwhereas"){
-    documentAttributeManager.removeAttributeOnLine(lastLine, 'context');
-    documentAttributeManager.setAttributeOnLine(lastLine, 'context', 'lastwhereas');
-  }
+    }
 
-  // If not, remove contextwhereas and apply contextlastwhereas
-  console.log("reassigning");
+    /*
+    var lineNumber = line+1;
+
+    if(!lastLine) return;
+    // console.log("last line with whereas is", lastLine);
+
+    // Check to see if this line number already has lastwhere context value
+    var context = documentAttributeManager.getAttributeOnLine(lastLine, 'context');
+
+    // Check to see if the line after it already is lastwhere 
+    var nextContext = documentAttributeManager.getAttributeOnLine(lastLine+1, 'context');
+
+    if(context === "Whereas" && context !== "lastWhereas" && nextContext !== "lastwhereas"){
+      documentAttributeManager.removeAttributeOnLine(lastLine, 'context');
+      documentAttributeManager.setAttributeOnLine(lastLine, 'context', 'lastwhereas');
+    }
+
+    // If not, remove contextwhereas and apply contextlastwhereas
+    // console.log("reassigning derp");
+    */
+  });
 }
 
 function handlePaste(context){
@@ -651,3 +698,11 @@ function handlePaste(context){
     }
   });
 }
+
+Object.size = function(obj) {
+    var size = 0, key;
+    for (key in obj) {
+        if (obj.hasOwnProperty(key)) size++;
+    }
+    return size;
+};
