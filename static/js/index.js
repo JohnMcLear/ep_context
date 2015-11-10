@@ -550,9 +550,13 @@ function reDrawContextOnLeft(cs, documentAttributeManager, rep){
     var context = documentAttributeManager.getAttributeOnLine(k, 'context');
     if(context){
       // draw the context value on the screen
-      contextContainer.append("<div class='contextLabel' style='top:"+offset+"px'>"+context+"</div>");
+      if(offset){
+        contextContainer.append("<div class='contextLabel' style='top:"+offset+"px'>"+context+"</div>");
+      }
     }else{
-      contextContainer.append("<div class='contextLabel nocontext' style='top:"+offset+"px'>No Context</div>");
+      if(offset){ // Handle bug where it would randomly throw a context label at offset 0
+        contextContainer.append("<div class='contextLabel nocontext' style='top:"+offset+"px'>No Context</div>");
+      }
     }
   });
 }
