@@ -562,7 +562,6 @@ function reDrawContextOnLeft(cs, documentAttributeManager, rep){
 }
 
 function reAssignContextToLastLineOfContextType(cs, documentAttributeManager, rep){
-  console.log("reassigning");
   // Iterate through document
   var padInner = $('iframe[name="ace_outer"]').contents().find('iframe[name="ace_inner"]');
   var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
@@ -607,11 +606,9 @@ function reAssignContextToLastLineOfContextType(cs, documentAttributeManager, re
       if(contexts[nextLineKey]) nextLine = contexts[nextLineKey];
     }
 
-/*
-    console.log("prevLine", prevLine);
-    console.log("thisLine", thisLine);
-    console.log("nextLine", nextLine);
-*/
+    // console.log("prevLine", prevLine);
+    // console.log("thisLine", thisLine);
+    // console.log("nextLine", nextLine);
 
     // REMOVE LASTLINE
     // If this line has lastwhereas context AND the next line has whereas then this line should not have lastwhereas
@@ -619,7 +616,7 @@ function reAssignContextToLastLineOfContextType(cs, documentAttributeManager, re
     if(thisLine.hasLastLine && nextLine.hasContext){
       documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
       documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'Whereas');
-      console.log("removing lastwhereas from ", lineNumber, thisLine)
+      // console.log("removing lastwhereas from ", lineNumber, thisLine)
     }
 
     // ADD LASTLINE
@@ -628,7 +625,7 @@ function reAssignContextToLastLineOfContextType(cs, documentAttributeManager, re
       // console.log("setting last line on ", lineNumber, thisLine);
       // Check to see if this line number already has lastwhere context value
       var context = documentAttributeManager.getAttributeOnLine(lineNumber, 'context');
-      console.log("Current context of line", lineNumber, context);
+      // console.log("Current context of line", lineNumber, context);
       if(context !== "lastWhereas" && context === "Whereas"){
         documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
         documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'lastwhereas');
