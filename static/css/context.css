@@ -77,7 +77,7 @@ contexttitle {
 }
 
 contextwhereas::before {
-  content: 'WHEREAS ';
+  content: 'WHEREAS, ';
   font-style: italic;
 }
 
@@ -86,7 +86,7 @@ contextwhereas::after {
 }
 
 contextlastwhereas::before{
-  content: 'WHEREAS ';
+  content: 'WHEREAS, ';
 }
 
 contextlastwhereas::after{
@@ -95,7 +95,7 @@ contextlastwhereas::after{
 
 
 contextresolved::before {
-  content: 'BE IT RESOLVED ';
+  content: 'Be It Resolved, ';
   font-style: italic;
 }
 
