@@ -1,20 +1,20 @@
 var _, $, jQuery;
 var $ = require('ep_etherpad-lite/static/js/rjquery').$;
 var _ = require('ep_etherpad-lite/static/js/underscore');
+var padEditor;
 
 var styles = ["Sponsor", "Title", "Whereas", "Resolved", "Signature", "Date"];
 
 // Handle paste events
 exports.acePaste = function(hook, context){
-  // TODO, replace setTimeout with something more sane..  I think we 
-  // should let the paste event bubble through aceEditEvent or so..
-  setTimeout(function(){
-    context.editorInfo.ace_handlePaste(context);
-  }, 250);
+  clientVars.isPasting = true;
 }
 
 // Bind the event handler to the toolbar buttons
 exports.postAceInit = function(hook, context){
+  console.log(context);
+  padEditor = context.ace;
+
   // Put the styles available as external so things like table of contents can smell them
   clientVars.plugins.plugins.ep_context.styles = styles;
 
@@ -224,6 +224,15 @@ exports.aceEditEvent = function(hook, call, cb){
   var rep = call.rep;
   var documentAttributeManager = call.documentAttributeManager;
 
+  // If it's a paste event handle this uniquely..
+  if(clientVars.isPasting && call.callstack.type === "idleWorkTimer" && call.callstack.docTextChanged){
+    padEditor.callWithAce(function(ace){
+      ace.ace_handlePaste();
+    });
+    clientVars.isPasting = false;
+    return;
+  }
+
   // reDraw controls to this location..  (might be a little confusing)...
   if(cs.type === "handleKeyEvent" || cs.type === "idleWorkTimer"){
     reDrawControls(rep.selStart[0]);
@@ -415,7 +424,7 @@ exports.aceDomLineProcessLineAttributes = function(name, context){
     $.each(tags, function(i, tag){
       if(tag.substring(0,7) === "context"){
         // on paste we have the correct context defined so we need to modify it back to the tag
-        tag = tag.substring(7,tag.length); // cake
+        tag = tag.substring(7,tag.length);
         tag = tag.charAt(0).toUpperCase() + tag.slice(1);
       }
       if(styles.indexOf(tag) !== -1 || tag === "lastwhereas"){
@@ -635,8 +644,9 @@ function reAssignContextToLastLineOfContextType(cs, documentAttributeManager, re
   });
 }
 
-function handlePaste(context){
-  var that = this;
+function handlePaste(){
+  var context = this;
+  var documentAttributeManager = context.documentAttributeManager;
   // Get each line
   var lines = $('iframe[name="ace_outer"]').contents().find('iframe').contents().find("#innerdocbody").children("div");
 
@@ -665,7 +675,7 @@ function handlePaste(context){
         // TODO if line has line attribute marker this will be wrong
         // Check if the line already has an attribute maker and if so bump 0 to 1 and 8 to 9
         // HACK I don't think this is the best way but for now it will do..
-        var attributeLength = context.documentAttributeManager.rep.alines[lineNumber].length;
+        var attributeLength = documentAttributeManager.rep.alines[lineNumber].length;
         if(attributeLength > 8){
           startLocation = 1;
           endLocation = 10;
@@ -681,14 +691,8 @@ function handlePaste(context){
           endLocation = endLocation + numberOfPrefixSpaces;
         }
         ace.ace_replaceRange([lineNumber,startLocation], [lineNumber,strPos+endLocation], "");
- 
-
-	// CAKEK TODOODOODDO
-        // assign whereas attribute
-        // that.editorInfo.ace_doContext('whereas', lineNumber, lineNumber);
-        // The above is broken and I have no idea why, each time I rewrite I end up with
-        // Uncaught TypeError: Cannot read property 'editEvent'
-        // So for now it's commented out!
+        // Set the Attribute to Whereas for the line
+        documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'Whereas');
       });
     }
   });
