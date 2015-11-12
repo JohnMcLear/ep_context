@@ -86,6 +86,10 @@ contextwhereas::after {
 }
 
 contextlastwhereas::before{
+  content: 'WHEREAS ';
+}
+
+contextlastwhereas::after{
   content: '; now, therefore,';
 }
 
