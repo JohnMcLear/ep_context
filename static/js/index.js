@@ -313,6 +313,7 @@ exports.aceEditEvent = function(hook, call, cb){
         // Show this context as being enabled.
         lastContext = lastContext.replace("context","");
         lastContext = lastContext.charAt(0).toUpperCase() + lastContext.slice(1);
+	if(lastContext === "Lastwhereas") lastContext = "Whereas";
         select.val(lastContext); // side
         $('.context-selection').val(lastContext); // top
       }
@@ -560,6 +561,7 @@ function reDrawContextOnLeft(cs, documentAttributeManager, rep){
     if(context){
       // draw the context value on the screen
       if(offset){
+        if(context === "lastwhereas") context = "Whereas";
         contextContainer.append("<div class='contextLabel' style='top:"+offset+"px'>"+context+"</div>");
       }
     }else{
