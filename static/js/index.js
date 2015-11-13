@@ -571,6 +571,7 @@ function reDrawContextOnLeft(cs, documentAttributeManager, rep){
         if(context === "lastwhereas") context = "Whereas";
         if(context === "lastresolved") context = "Resolved";
         if(context === "firstresolved") context = "Resolved";
+        if(context === "contextresolved") context = "Resolved";
         contextContainer.append("<div class='contextLabel' style='top:"+offset+"px'>"+context+"</div>");
       }
     }else{
