@@ -285,6 +285,7 @@ exports.aceEditEvent = function(hook, call, cb){
           // var blankLine = (call.rep.alines[thisLine] === "*0|1+1");
           // if(!blankLine) return;
           if(attributes === "lastwhereas") attributes = "Whereas";
+          if(attributes === "lastresolved") attributes = "Resolved";
           // console.log("Setting attribute On Line", attributes);
           documentAttributeManager.setAttributeOnLine(thisLine, 'context', attributes);
         }
@@ -317,6 +318,7 @@ exports.aceEditEvent = function(hook, call, cb){
         lastContext = lastContext.replace("context","");
         lastContext = lastContext.charAt(0).toUpperCase() + lastContext.slice(1);
 	if(lastContext === "Lastwhereas") lastContext = "Whereas";
+	if(lastContext === "Lastresolved") lastContext = "Resolved";
         select.val(lastContext); // side
         $('.context-selection').val(lastContext); // top
       }
@@ -343,6 +345,7 @@ exports.aceAttribsToClasses = function(hook, context){
 exports.aceRegisterBlockElements = function(){
   var styleArr = [];
   styleArr.push("contextlastwhereas");
+  styleArr.push("contextlastresolved");
 
   $.each(styles, function(k,v){
     styleArr.push("context"+v.toLowerCase());
@@ -431,7 +434,7 @@ exports.aceDomLineProcessLineAttributes = function(name, context){
         tag = tag.substring(7,tag.length);
         tag = tag.charAt(0).toUpperCase() + tag.slice(1);
       }
-      if(styles.indexOf(tag) !== -1 || tag === "lastwhereas"){
+      if(styles.indexOf(tag) !== -1 || tag === "lastwhereas" || tag === "lastresolved"){
         preHtml += '<context' + tag + ' class="context">';
         postHtml += '</context' + tag + ' class="context">';
         processed = true;
@@ -565,6 +568,7 @@ function reDrawContextOnLeft(cs, documentAttributeManager, rep){
       // draw the context value on the screen
       if(offset){
         if(context === "lastwhereas") context = "Whereas";
+        if(context === "lastresolved") context = "Resolved";
         contextContainer.append("<div class='contextLabel' style='top:"+offset+"px'>"+context+"</div>");
       }
     }else{
@@ -588,6 +592,7 @@ function reAssignContextToLastLineOfContextType(cs, documentAttributeManager, re
     contexts[k] = {};
     // console.log("line", line);
 
+// CAKE
     // Find last contextwhereas
     var hasContext = $(line).find("contextwhereas, contextlastwhereas");
     // If the line is whereas or lastwhereas context store this data in an object

@@ -86,7 +86,7 @@ exports.getLineHTMLForExport = function (hook, line) {
 
 // clean up HTML into something sane
 exports.exportHTMLSend = function(hook, html, cb){
-  var blockElements = ["Sponsor", "Title", "Whereas", "Resolved", "Signature", "Date", "LastWhereas"];
+  var blockElements = ["Sponsor", "Title", "Whereas", "Resolved", "Signature", "Date", "LastWhereas", "LastResolved"];
   console.warn("um okay");
   sanitize.exec(html, blockElements, function(error, cleanedHTML){
     console.warn(cleanHTML);
