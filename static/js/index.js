@@ -12,7 +12,6 @@ exports.acePaste = function(hook, context){
 
 // Bind the event handler to the toolbar buttons
 exports.postAceInit = function(hook, context){
-  console.log(context);
   padEditor = context.ace;
 
   // Put the styles available as external so things like table of contents can smell them
@@ -133,7 +132,6 @@ exports.postAceInit = function(hook, context){
 
         // Set the new line context
         if(context){
-          // console.log("context", context);
           ace.ace_doContext(context);
         }
 
@@ -644,28 +642,29 @@ function reAssignContextToLastLineOfContextType(cs, documentAttributeManager, re
     // If this line has lastwhereas context AND the next line has whereas then this line should not have lastwhereas
     // So remove it..
     if(thisLine.hasLastLine && nextLine.hasContext && (nextLine.context === context)){
-      console.log("removing last");
+      // console.log("removing last");
       documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
       if(context === "whereas") documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'Whereas');
       if(context === "resolved") documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'Resolved');
       // console.log("removing lastwhereas from ", lineNumber, thisLine)
     }
 
-    // REMOVE FIRSTLINE
-    // If this line has lastwhereas context AND the next line has whereas then this line should not have lastwhereas
-    // So remove it..
-console.log("pL", prevLine, context)
-    if(thisLine.hasContext && (prevLine.context === "resolved") && context){
-      console.log("removing first");
-      documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
-      documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'Resolved');
-      console.log("removing firstwhereas from ", lineNumber, thisLine, prevLine, context)
+    if(context === "contextfirstresolved"){
+      // REMOVE FIRSTLINE
+      // If this line has lastwhereas context AND the next line has whereas then this line should not have lastwhereas
+      // So remove it..
+      if(thisLine.hasContext && (prevLine.context === "resolved") && context){
+        // console.log("removing first");
+        documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
+        documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'Resolved');
+        // console.log("removing firstwhereas from ", lineNumber, thisLine, prevLine, context)
+      }
     }
 
     // ADD LASTLINE
     // If this line has context and the next line doesn't, then this line should get lastwhereas
     if(thisLine.hasContext && !nextLine.hasContext && prevLine.hasContext && (prevLine.context === context)){
-      console.log("setting last line on ", lineNumber, thisLine);
+      // console.log("setting last line on ", lineNumber, thisLine);
       // Check to see if this line number already has lastwhere context value
       // var context = documentAttributeManager.getAttributeOnLine(lineNumber, 'context');
       // console.log("Current context of line", lineNumber, context);
@@ -681,22 +680,18 @@ console.log("pL", prevLine, context)
 
     // ADD FIRSTLINE
     // If this is the first line with this context
-console.log(prevLine.context);
     if(thisLine.hasContext && (prevLine.context !== "resolved")){
       // console.log("setting first line on ", lineNumber, thisLine);
       // Check to see if this line number already has lastwhere context value
       var context = documentAttributeManager.getAttributeOnLine(lineNumber, 'context');
-      console.log("Current context of line", lineNumber, context);
+      // console.log("Current context of line", lineNumber, context);
       if(context === "Resolved" || context === "lastresolved"){
-console.log("setting first", lineNumber);
+        // console.log("setting first", lineNumber);
         documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
         documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'firstresolved');
       }
     }
-
   });
-console.log(contexts);
-
 }
 
 function handlePaste(){
