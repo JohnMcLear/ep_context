@@ -286,6 +286,7 @@ exports.aceEditEvent = function(hook, call, cb){
           // if(!blankLine) return;
           if(attributes === "lastwhereas") attributes = "Whereas";
           if(attributes === "lastresolved") attributes = "Resolved";
+          if(attributes === "firstresolved") attributes = "Resolved";
           // console.log("Setting attribute On Line", attributes);
           documentAttributeManager.setAttributeOnLine(thisLine, 'context', attributes);
         }
@@ -319,6 +320,7 @@ exports.aceEditEvent = function(hook, call, cb){
         lastContext = lastContext.charAt(0).toUpperCase() + lastContext.slice(1);
 	if(lastContext === "Lastwhereas") lastContext = "Whereas";
 	if(lastContext === "Lastresolved") lastContext = "Resolved";
+	if(lastContext === "Firstresolved") lastContext = "Resolved";
         select.val(lastContext); // side
         $('.context-selection').val(lastContext); // top
       }
@@ -346,6 +348,7 @@ exports.aceRegisterBlockElements = function(){
   var styleArr = [];
   styleArr.push("contextlastwhereas");
   styleArr.push("contextlastresolved");
+  styleArr.push("contextfirstresolved");
 
   $.each(styles, function(k,v){
     styleArr.push("context"+v.toLowerCase());
@@ -434,7 +437,7 @@ exports.aceDomLineProcessLineAttributes = function(name, context){
         tag = tag.substring(7,tag.length);
         tag = tag.charAt(0).toUpperCase() + tag.slice(1);
       }
-      if(styles.indexOf(tag) !== -1 || tag === "lastwhereas" || tag === "lastresolved"){
+      if(styles.indexOf(tag) !== -1 || tag === "lastwhereas" || tag === "lastresolved" || tag === "firstresolved"){
         preHtml += '<context' + tag + ' class="context">';
         postHtml += '</context' + tag + ' class="context">';
         processed = true;
@@ -569,6 +572,7 @@ function reDrawContextOnLeft(cs, documentAttributeManager, rep){
       if(offset){
         if(context === "lastwhereas") context = "Whereas";
         if(context === "lastresolved") context = "Resolved";
+        if(context === "firstresolved") context = "Resolved";
         contextContainer.append("<div class='contextLabel' style='top:"+offset+"px'>"+context+"</div>");
       }
     }else{
@@ -587,18 +591,22 @@ function reAssignContextToLastLineOfContextType(cs, documentAttributeManager, re
   // for each line
   var lines = padInner.contents().find("div");
   var contexts = {};
-
   $.each(lines, function(k, line){
     contexts[k] = {};
     // console.log("line", line);
-
-// CAKE
     // Find last contextwhereas
-    var hasContext = $(line).find("contextwhereas, contextlastwhereas");
+    var hasContext = $(line).find("contextwhereas, contextlastwhereas, contextresolved, contextlastresolved , contextfirstresolved");
+    if(hasContext[0]) var context = hasContext[0].localName;
     // If the line is whereas or lastwhereas context store this data in an object
     if(!hasContext) return;
     if(hasContext.length > 0){
       contexts[k].hasContext = true;
+      if(context === "contextwhereas" || context === "contextlastwhereas"){
+        contexts[k].context = "whereas"
+      }
+      if(context === "contextresolved" || context === "contextlastresolved" || context === "contextfirstresolved"){
+        contexts[k].context = "resolved"
+      }
     }
     var isLastLine = $(line).find("contextlastwhereas");
     if(isLastLine.length > 0){
@@ -610,6 +618,7 @@ function reAssignContextToLastLineOfContextType(cs, documentAttributeManager, re
   // Go through our existing object and check to see if it's right..
   $.each(contexts, function(k, line){
     var lineNumber = parseInt(k);
+    var context = line.context;
     var thisLine = line;
     var nextLine = {};
     var prevLine = {};
@@ -625,6 +634,8 @@ function reAssignContextToLastLineOfContextType(cs, documentAttributeManager, re
       if(contexts[nextLineKey]) nextLine = contexts[nextLineKey];
     }
 
+    var context = documentAttributeManager.getAttributeOnLine(lineNumber, 'context');
+
     // console.log("prevLine", prevLine);
     // console.log("thisLine", thisLine);
     // console.log("nextLine", nextLine);
@@ -632,26 +643,60 @@ function reAssignContextToLastLineOfContextType(cs, documentAttributeManager, re
     // REMOVE LASTLINE
     // If this line has lastwhereas context AND the next line has whereas then this line should not have lastwhereas
     // So remove it..
-    if(thisLine.hasLastLine && nextLine.hasContext){
+    if(thisLine.hasLastLine && nextLine.hasContext && (nextLine.context === context)){
+      console.log("removing last");
       documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
-      documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'Whereas');
+      if(context === "whereas") documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'Whereas');
+      if(context === "resolved") documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'Resolved');
       // console.log("removing lastwhereas from ", lineNumber, thisLine)
+    }
+
+    // REMOVE FIRSTLINE
+    // If this line has lastwhereas context AND the next line has whereas then this line should not have lastwhereas
+    // So remove it..
+console.log("pL", prevLine, context)
+    if(thisLine.hasContext && (prevLine.context === "resolved") && context){
+      console.log("removing first");
+      documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
+      documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'Resolved');
+      console.log("removing firstwhereas from ", lineNumber, thisLine, prevLine, context)
     }
 
     // ADD LASTLINE
     // If this line has context and the next line doesn't, then this line should get lastwhereas
-    if(thisLine.hasContext && !nextLine.hasContext && prevLine.hasContext){
-      // console.log("setting last line on ", lineNumber, thisLine);
+    if(thisLine.hasContext && !nextLine.hasContext && prevLine.hasContext && (prevLine.context === context)){
+      console.log("setting last line on ", lineNumber, thisLine);
       // Check to see if this line number already has lastwhere context value
-      var context = documentAttributeManager.getAttributeOnLine(lineNumber, 'context');
+      // var context = documentAttributeManager.getAttributeOnLine(lineNumber, 'context');
       // console.log("Current context of line", lineNumber, context);
       if(context !== "lastWhereas" && context === "Whereas"){
         documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
         documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'lastwhereas');
       }
-
+      if(context !== "lastResolved" && context === "Resolved"){
+        documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
+        documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'lastresolved');
+      }
     }
+
+    // ADD FIRSTLINE
+    // If this is the first line with this context
+console.log(prevLine.context);
+    if(thisLine.hasContext && (prevLine.context !== "resolved")){
+      // console.log("setting first line on ", lineNumber, thisLine);
+      // Check to see if this line number already has lastwhere context value
+      var context = documentAttributeManager.getAttributeOnLine(lineNumber, 'context');
+      console.log("Current context of line", lineNumber, context);
+      if(context === "Resolved" || context === "lastresolved"){
+console.log("setting first", lineNumber);
+        documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
+        documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'firstresolved');
+      }
+    }
+
   });
+console.log(contexts);
+
 }
 
 function handlePaste(){

@@ -95,7 +95,7 @@ contextlastwhereas::after{
 
 
 contextresolved::before {
-  content: 'Be It Resolved, ';
+  content: 'Be It Further Resolved, ';
   font-style: italic;
 }
 
@@ -103,6 +103,15 @@ contextresolved::after {
   content: '; and';
 }
 
+contextlastresolved::before{
+  content: 'Be It Further Resolved, ';
+  font-style: italic;
+}
+
+contextfirstresolved::before{
+  content: 'Be It Resolved, ';
+  font-style: italic;
+}
 .nocontext{
   color:red;
 }
