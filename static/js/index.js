@@ -148,12 +148,14 @@ exports.postAceInit = function(hook, context){
         return;
       }
       var lineNumber = $(e.currentTarget).data("lineNumber");
-      var offset = e.currentTarget.offsetTop + (e.currentTarget.offsetHeight/2) + 5;
-      select.css("position", "absolute");
-      select.css("top", offset+"px");
-      select.data("lineNumber", lineNumber);
-      $(select).show();
-      $(select).attr('size', styles.length+1);
+      if(e.currentTarget){
+        var offset = e.currentTarget.offsetTop + (e.currentTarget.offsetHeight/2) + 5;
+        select.css("position", "absolute");
+        select.css("top", offset+"px");
+        select.data("lineNumber", lineNumber);
+        $(select).show();
+        $(select).attr('size', styles.length+1);
+      }
     });
 
 
@@ -211,10 +213,11 @@ function reDrawLastLineButton(cs, documentAttributeManager, rep){
   var padInner = padOuter.find('iframe[name="ace_inner"]').contents();
   var button = padOuter.find('#bigNewLineButton');
   var div = padInner.contents().find("div").last();
-  var offset = div[0].offsetTop + div[0].offsetHeight + 20;
-
-  // Move the button below this
-  $(button).css("top", offset+"px");
+  if(div[0]){
+    var offset = div[0].offsetTop + div[0].offsetHeight + 20;
+    // Move the button below this
+    $(button).css("top", offset+"px");
+  }
 }
 
 // Show the active Context
