@@ -198,13 +198,12 @@ exports.postAceInit = function(hook, context){
   }, 'context', true);
 };
 
-function reDrawLastLineButton(cs, documentAttributeManager, rep){
+function reDrawLastLineButton(rep){
 
   var padLength = rep.lines.length();
 
   // padLength is reported as 0 on pad open..  Don't continue
   if(padLength === 0) return;
-
 
   // Check to see if lastLineButton is already in the right place..
   var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
@@ -246,7 +245,7 @@ exports.aceEditEvent = function(hook, call, cb){
 
   // reDraw last line button if we're setting up the document or it's changed at all
   if(cs.type === "setWraps" || cs.docTextChanged){
-    reDrawLastLineButton(cs, documentAttributeManager, rep);
+    reDrawLastLineButton(rep);
     setTimeout(function(){
       reDrawContextOnLeft(cs, documentAttributeManager, rep);
     },200);
@@ -324,7 +323,6 @@ exports.aceEditEvent = function(hook, call, cb){
       }
     });
   },250);
-    
 }
 
 /*****
@@ -494,6 +492,7 @@ exports.aceKeyEvent = function(hook, e){
   if(evt.keyCode === 32 && evt.shiftKey && evt.type === "keydown"){
     var lineNumber = rep.selStart[0]+1;
     var line = padInner.contents().find("div:nth-child("+lineNumber+")");
+    if(!line[0]) return;
     var offset = line[0].offsetTop + (line[0].offsetHeight/2) + 13;
     select.css("position", "absolute");
     select.css("top", offset+"px");
@@ -698,10 +697,16 @@ function handlePaste(){
   var documentAttributeManager = context.documentAttributeManager;
   // Get each line
   var lines = $('iframe[name="ace_outer"]').contents().find('iframe').contents().find("#innerdocbody").children("div");
+  var toDestroy = [];
 
   // Go through each line of the document
   $.each(lines, function(index, line){
     var lineText = $(line).text();
+
+    if(lineText.length === 0){
+      toDestroy.push(index);
+    }
+
     // See if the line has the whereas content
     var cleanLineText = lineText.toLowerCase();
     var strPos = cleanLineText.indexOf("whereas");
@@ -745,12 +750,25 @@ function handlePaste(){
       });
     }
   });
+
+  // Do the actual line destruction
+  context.editorInfo.ace_callWithAce(function(ace){
+    // We process the document from the bottom up so the reps don't change
+    // under us!
+    toDestroy = toDestroy.reverse();
+    $.each(toDestroy, function(i, lineNumber){
+      ace.ace_replaceRange([lineNumber,0], [lineNumber+1,0], "");
+    });
+  });
+
+  // Redraw last line as we modified layout..
+  reDrawLastLineButton(context.rep);
 }
 
 Object.size = function(obj) {
-    var size = 0, key;
-    for (key in obj) {
-        if (obj.hasOwnProperty(key)) size++;
-    }
-    return size;
+  var size = 0, key;
+  for (key in obj) {
+    if (obj.hasOwnProperty(key)) size++;
+  }
+  return size;
 };
