@@ -247,7 +247,7 @@ exports.aceEditEvent = function(hook, call, cb){
   if(cs.type === "setWraps" || cs.docTextChanged){
     reDrawLastLineButton(rep);
     setTimeout(function(){
-      reDrawContextOnLeft(cs, documentAttributeManager, rep);
+      reDrawContextOnLeft(documentAttributeManager);
     },200);
   }
 
@@ -544,7 +544,7 @@ function reDrawControls(lineNumber){
   controls.data("lineNumber", lineNumber);
 }
 
-function reDrawContextOnLeft(cs, documentAttributeManager, rep){
+function reDrawContextOnLeft(documentAttributeManager){
   var padInner = $('iframe[name="ace_outer"]').contents().find('iframe[name="ace_inner"]');
   var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
   var contextContainer = padOuter.find('#contextContainer');
@@ -763,6 +763,7 @@ function handlePaste(){
 
   // Redraw last line as we modified layout..
   reDrawLastLineButton(context.rep);
+  reDrawContextOnLeft(context.documentAttributeManager);
 }
 
 Object.size = function(obj) {
