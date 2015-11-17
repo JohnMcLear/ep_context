@@ -533,6 +533,7 @@ function reDrawControls(lineNumber){
   var controls = controlsContainer.find("#contextArrow, #newLineButton, #deleteLineButton, #contextHint");
 
   var line = padInner.contents().find("div").eq(lineNumber);
+  if(!line[0]) return;
   var offsetTop = line[0].offsetTop || 0;
   var offsetHeight = line[0].offsetHeight /2;
 
@@ -699,6 +700,9 @@ function handlePaste(){
   var lines = $('iframe[name="ace_outer"]').contents().find('iframe').contents().find("#innerdocbody").children("div");
   var toDestroy = [];
 
+  var contextStrings = ["whereas", "be it resolved", "be it further resolved"];
+  var contexts = ["Whereas", "Resolved", "Resolved"];
+
   // Go through each line of the document
   $.each(lines, function(index, line){
     var lineText = $(line).text();
@@ -709,10 +713,19 @@ function handlePaste(){
 
     // See if the line has the whereas content
     var cleanLineText = lineText.toLowerCase();
-    var strPos = cleanLineText.indexOf("whereas");
-    cleanLineText = cleanLineText.trim();
+    var strPosition = false;
+    var hasContext = false;
 
-    if(cleanLineText.indexOf("whereas") === 0){
+    $.each(contextStrings, function(k, contextString){
+      strPos = cleanLineText.indexOf(contextString); // Where is the string in the line
+      if(strPos !== -1){
+       hasContext = k; // Sets which context we have
+       strPosition = strPos;
+      }
+    });
+
+    cleanLineText = cleanLineText.trim();
+    if(hasContext !== false){ // Note that the index may be 0 because so we need this statement
       // If line has where whereas content then
       // console.log("This line has whereas text", lineText, index);
       // move caret to this location
@@ -723,33 +736,60 @@ function handlePaste(){
         // console.log("replacing content on ", lineNumber);
 
         var startLocation = 0;
-        var endLocation = 9;
+        var endLocation = contextStrings[hasContext].length;
 
-        // remove "whereas " content from string
+        // remove "whereas" etc. content from string
         // TODO if line has line attribute marker this will be wrong
         // Check if the line already has an attribute maker and if so bump 0 to 1 and 8 to 9
         // HACK I don't think this is the best way but for now it will do..
         var attributeLength = documentAttributeManager.rep.alines[lineNumber].length;
         if(attributeLength > 8){
           startLocation = 1;
-          endLocation = 10;
+          endLocation = endLocation +1;
         }
 
         // Check to see if there is any white space prefixing the string.
-        var stringWithoutWhereas = cleanLineText.substring(9,cleanLineText.length);
-        // console.log(stringWithoutWhereas);
+        var stringWithoutContext = cleanLineText.substring(contextStrings[hasContext].length,cleanLineText.length);
+
+        // Strip leading ,'s a common cause of gum disease
+        if(stringWithoutContext[0] === ","){
+          endLocation++;
+          stringWithoutContext = stringWithoutContext.substring(1, stringWithoutContext.length);
+        }
+
+        // Stripp leading white space
         var regex = /^\s*/;
-        var numberOfPrefixSpaces = stringWithoutWhereas.match(regex)[0].length;
-        // console.log("Number of Prefix Spaces", numberOfPrefixSpaces);
+        var numberOfPrefixSpaces = stringWithoutContext.match(regex)[0].length;
+
         if(numberOfPrefixSpaces){
           endLocation = endLocation + numberOfPrefixSpaces;
         }
-        ace.ace_replaceRange([lineNumber,startLocation], [lineNumber,strPos+endLocation], "");
+
+        // Removes everything noisy to keep things clean, fresh and minty
+        ace.ace_replaceRange([lineNumber,startLocation], [lineNumber,strPosition+endLocation], "");
+
         // Set the Attribute to Whereas for the line
-        documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'Whereas');
+        documentAttributeManager.setAttributeOnLine(lineNumber, 'context', contexts[hasContext]);
       });
+    }else{
+      var lineNumber = index;
+
+      context.editorInfo.ace_callWithAce(function(ace){
+        // Line doesn't have an attribute so only strip it clean
+        var regex = /^\s*/;
+        var numberOfPrefixSpaces = lineText.match(regex)[0].length;
+        // console.log("Number of Prefix Spaces", numberOfPrefixSpaces);
+        var endLocation = 0;
+        var startLocation = 0;
+        if(numberOfPrefixSpaces){
+          endLocation = endLocation + numberOfPrefixSpaces;
+        }
+        ace.ace_replaceRange([lineNumber,startLocation], [lineNumber,endLocation], "");
+      });
+
     }
   });
+
 
   // Do the actual line destruction
   context.editorInfo.ace_callWithAce(function(ace){
