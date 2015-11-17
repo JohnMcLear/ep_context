@@ -323,7 +323,7 @@ exports.aceEditEvent = function(hook, call, cb){
         $('.context-selection').val(lastContext); // top
       }
     });
-  },250);
+  },500);
 }
 
 /*****
