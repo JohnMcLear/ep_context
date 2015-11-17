@@ -717,10 +717,12 @@ function handlePaste(){
   // Go through each line of the document
   $.each(lines, function(index, line){
     var lineText = $(line).text();
+    console.log("lineText", lineText, "lineText.length", lineText.length);
 
     if(lineText.length === 0){
       toDestroy.push(index);
     }
+
 
     // See if the line has the whereas content
     var cleanLineText = lineText.toLowerCase();
