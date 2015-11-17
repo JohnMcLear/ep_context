@@ -522,7 +522,6 @@ exports.aceKeyEvent = function(hook, e){
       e.editorInfo.ace_performSelectionChange(e.rep.selStart,e.rep.selEnd)
     }
   }
-
 }
 
 function reDrawControls(lineNumber){
