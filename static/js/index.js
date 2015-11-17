@@ -651,7 +651,6 @@ function reAssignContextToLastLineOfContextType(cs, documentAttributeManager, re
     // If this lines context is the same as the next lines context
     // So remove it..
     if(thisLine.hasLastLine && nextLine.hasContext && (nextLine.context === thisLine.context)){
-      console.log("removing lastline", context);
       documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
       if(context === "whereas" || context === "lastwhereas" || context === "firstwhereas") documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'Whereas');
       if(context === "resolved" || context === "lastresolved" || context === "firstresolved") documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'Resolved');
