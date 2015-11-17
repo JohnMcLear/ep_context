@@ -8,6 +8,7 @@ var styles = ["Sponsor", "Title", "Whereas", "Resolved", "Signature", "Date"];
 // Handle paste events
 exports.acePaste = function(hook, context){
   clientVars.isPasting = true;
+  clientVars.enterKey = false;
 }
 
 // Bind the event handler to the toolbar buttons
@@ -255,7 +256,8 @@ exports.aceEditEvent = function(hook, call, cb){
     return false;
   }
 
-  if(cs.docTextChanged === true && cs.domClean === true && cs.repChanged === true && (cs.type === "handleKeyEvent" || cs.type === "context")){ 
+  if(cs.docTextChanged === true && cs.domClean === true && cs.repChanged === true && (cs.type === "handleKeyEvent" || cs.type === "context") && clientVars.enterKey){ 
+    clientVars.enterKey = false;
     // Define variables
     var lastLine = rep.selStart[0]-1;
     var thisLine = rep.selEnd[0];
@@ -284,7 +286,6 @@ exports.aceEditEvent = function(hook, call, cb){
           if(attributes === "lastwhereas") attributes = "Whereas";
           if(attributes === "lastresolved") attributes = "Resolved";
           if(attributes === "firstresolved") attributes = "Resolved";
-          // console.log("Setting attribute On Line", attributes);
           documentAttributeManager.setAttributeOnLine(thisLine, 'context', attributes);
         }
         clientVars.plugins.plugins.ep_context.crudeEnterCounter++;
@@ -474,6 +475,13 @@ exports.aceKeyEvent = function(hook, e){
   var rep = e.rep;
   var evt = e.evt;
 
+  // May aswell set a clientVar on Enter press, this makes things a lot cleaner :)
+  if(evt.keyCode === 13 && evt.type === "keydown"){
+    clientVars.enterKey = true;
+  }else{
+    clientVars.enterKey = false;
+  }
+
   var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
   var padInner = $('iframe[name="ace_outer"]').contents().find('iframe[name="ace_inner"]');
   var select = $('iframe[name="ace_outer"]').contents().find('.context-selection');
@@ -654,6 +662,7 @@ function reAssignContextToLastLineOfContextType(cs, documentAttributeManager, re
       // REMOVE FIRSTLINE
       // If this line has lastwhereas context AND the next line has whereas then this line should not have lastwhereas
       // So remove it..
+
       if(thisLine.hasContext && (prevLine.context === "resolved" || prevLine.content === "firstresolved") && context){
         documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
         documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'Resolved');
@@ -673,6 +682,7 @@ function reAssignContextToLastLineOfContextType(cs, documentAttributeManager, re
         documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
         documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'lastwhereas');
       }
+
       if(context !== "lastResolved" && context === "Resolved" || context === "contextresolved"){
         documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
         documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'lastresolved');
@@ -741,7 +751,7 @@ function handlePaste(){
         var endLocation = contextStrings[hasContext].length;
 
         // remove "whereas" etc. content from string
-        // TODO if line has line attribute marker this will be wrong
+        // if line has line attribute marker this will be wrong
         // Check if the line already has an attribute maker and if so bump 0 to 1 and 8 to 9
         // HACK I don't think this is the best way but for now it will do..
         var attributeLength = documentAttributeManager.rep.alines[lineNumber].length;
