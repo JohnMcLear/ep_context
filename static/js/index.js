@@ -641,11 +641,13 @@ function reAssignContextToLastLineOfContextType(cs, documentAttributeManager, re
 
     // REMOVE LASTLINE
     // If this line has lastwhereas context AND the next line has whereas then this line should not have lastwhereas
+    // If this lines context is the same as the next lines context
     // So remove it..
-    if(thisLine.hasLastLine && nextLine.hasContext){
+    if(thisLine.hasLastLine && nextLine.hasContext && (nextLine.context === thisLine.context)){
+      console.log("removing lastline", context);
       documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
-      if(context === "whereas") documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'Whereas');
-      if(context === "resolved") documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'Resolved');
+      if(context === "whereas" || context === "lastwhereas" || context === "firstwhereas") documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'Whereas');
+      if(context === "resolved" || context === "lastresolved" || context === "firstresolved") documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'Resolved');
       // console.log("removing lastwhereas from ", lineNumber, thisLine)
     }
 
@@ -662,7 +664,8 @@ function reAssignContextToLastLineOfContextType(cs, documentAttributeManager, re
 
     // ADD LASTLINE
     // If this line has context and the next line doesn't, then this line should get lastwhereas
-    if(thisLine.hasContext && !nextLine.hasContext && prevLine.hasContext){
+    // If this line has different context to the next line
+    if(thisLine.hasContext && prevLine.hasContext && (nextLine.context !== thisLine.context)){
       // console.log("setting last line on ", lineNumber, thisLine);
       // Check to see if this line number already has lastwhere context value
       // var context = documentAttributeManager.getAttributeOnLine(lineNumber, 'context');
