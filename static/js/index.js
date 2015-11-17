@@ -296,7 +296,7 @@ exports.aceEditEvent = function(hook, call, cb){
   // Todo, this is too agressive on events but it doesn't fire on drag/drop!
   if(cs.domClean === false && (cs.type === "handleKeyEvent" || cs.type === "context" || cs.type === "handleClick")){
     // Reassign last line to lastwhereas
-    reAssignContextToLastLineOfContextType(cs, documentAttributeManager, rep);
+    reAssignContextToLastLineOfContextType(documentAttributeManager);
   }
 
   // If the text has changed in the pad I need to redraw the top of the select and the left arrow
@@ -589,7 +589,7 @@ function reDrawContextOnLeft(documentAttributeManager){
   });
 }
 
-function reAssignContextToLastLineOfContextType(cs, documentAttributeManager, rep){
+function reAssignContextToLastLineOfContextType(documentAttributeManager){
   // Iterate through document
   var padInner = $('iframe[name="ace_outer"]').contents().find('iframe[name="ace_inner"]');
   var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
@@ -803,8 +803,11 @@ function handlePaste(){
         }
         ace.ace_replaceRange([lineNumber,startLocation], [lineNumber,endLocation], "");
       });
-
     }
+
+    reAssignContextToLastLineOfContextType(documentAttributeManager);
+
+
   });
 
 
