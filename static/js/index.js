@@ -804,9 +804,9 @@ function handlePaste(){
         ace.ace_replaceRange([lineNumber,startLocation], [lineNumber,endLocation], "");
       });
     }
-
-    reAssignContextToLastLineOfContextType(documentAttributeManager);
-
+    setTimeout(function(){
+      reAssignContextToLastLineOfContextType(documentAttributeManager);
+    }, 250);
 
   });
 
