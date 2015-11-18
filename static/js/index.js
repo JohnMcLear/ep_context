@@ -804,10 +804,6 @@ function handlePaste(){
         ace.ace_replaceRange([lineNumber,startLocation], [lineNumber,endLocation], "");
       });
     }
-    setTimeout(function(){
-      reAssignContextToLastLineOfContextType(documentAttributeManager);
-    }, 250);
-
   });
 
 
@@ -824,6 +820,7 @@ function handlePaste(){
   // Redraw last line as we modified layout..
   reDrawLastLineButton(context.rep);
   reDrawContextOnLeft(context.documentAttributeManager);
+  reAssignContextToLastLineOfContextType(documentAttributeManager);
 }
 
 Object.size = function(obj) {
