@@ -1,15 +1,17 @@
 var eejs = require('ep_etherpad-lite/node/eejs/');
 var Changeset = require("ep_etherpad-lite/static/js/Changeset");
 var sanitize = require('./sanitizer.js').sanitize;
-var Security = require('ep_etherpad-lite/static/js/security'); 
+var Security = require('ep_etherpad-lite/static/js/security');
 var _encodeWhitespace = require('ep_etherpad-lite/node/utils/ExportHelper')._encodeWhitespace;
 
-var stylesCSS = ["contexttitle{text-align:center;display:block;font-size:18px;line-height:20px;}",
-  "contextwhereas::before{content: 'Whereas '}"];
+var stylesCSS = [".contextTitle{text-align:center;display:block;font-size:18px;line-height:20px;}\n",
+  ".contexttitle{text-align:center;display:block;font-size:18px;line-height:20px;}\n",
+  "br{display:none}\n"
+];
 
-/******************** 
-* UI 
-*/ 
+/********************
+* UI
+*/
 exports.eejsBlock_editbarMenuLeft = function (hook_name, args, cb) {
   args.content = args.content + eejs.require("ep_context/templates/editbarButtons.ejs");
   return cb();
@@ -21,17 +23,17 @@ exports.eejsBlock_dd_format = function (hook_name, args, cb) {
 }
 
 
-/******************** 
+/********************
 * Editor
 */
 
-// Allow <whatever> to be an attribute 
+// Allow <whatever> to be an attribute
 exports.aceAttribClasses = function(hook_name, attr, cb){
   attr.contextsection = 'tag:contextsection';
   cb(attr);
 }
 
-/******************** 
+/********************
 * Export
 */
 
@@ -39,7 +41,7 @@ exports.aceAttribClasses = function(hook_name, attr, cb){
 exports.stylesForExport = function(hook, padId, cb){
   var css = "";
   stylesCSS.forEach(function(style){
-    css += style;
+    css += "\n" + style;
   });
   cb(css);
 };
@@ -57,7 +59,7 @@ exports.getLineHTMLForExport = function (hook, line) {
   if(contextV){
     var contexts = contextV.split("$");
   }else{
-    return line.lineContent +"<br>";
+    return line.lineContent + "<br>";
   }
 
   var before = "";
@@ -65,12 +67,31 @@ exports.getLineHTMLForExport = function (hook, line) {
 
   if (contexts.length) {
     contexts.forEach(function(contextV){
-      before += "<p class='context" + contextV + "'>";
+      if(contextV.indexOf("context") !== 0){
+        before += "<p class='context" + contextV + "'>";
+      }else{
+        before += "<p class='" + contextV + "'>";
+      }
 
       // TODO, ensure this is not hard coded..  Impossible to parse CSS prolly so need a decent solution
       if(contextV === "Whereas"){
-        before += "Whereas, "
+        before += "WHEREAS, "
         after += ", and";
+      }
+      if(contextV === "firstresolved"){
+        before += "Be it resolved, "
+        after += ", and";
+      }
+      if(contextV === "Resolved"){
+        before += "Be It Further Resolved, "
+        after += ", and";
+      }
+      if(contextV === "lastresolved"){
+        before += "And finally it is resolved, "
+      }
+      if(contextV === "lastwhereas"){
+        before += "WHEREAS, "
+        after += "; now, therefore,"
       }
 
       after += "</p>";
@@ -78,7 +99,6 @@ exports.getLineHTMLForExport = function (hook, line) {
     // Remove leading * else don't..
     var newString = before + line.lineContent.substring(1) + after + "<br>";
     return newString;
-  
   }else{ // no context, nothing to remove
     return line.lineContent;
   }

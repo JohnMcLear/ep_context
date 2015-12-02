@@ -9,6 +9,7 @@ exports.collectContentPre = function(hook, context){
     delete lineAttributes['context'];
   }
   if(supportedContexts.indexOf(tname) !== -1){
+    console.log(tname);
     lineAttributes['context'] = tname;
   }
 

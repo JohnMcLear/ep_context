@@ -286,6 +286,7 @@ exports.aceEditEvent = function(hook, call, cb){
           if(attributes === "lastwhereas") attributes = "Whereas";
           if(attributes === "lastresolved") attributes = "Resolved";
           if(attributes === "firstresolved") attributes = "Resolved";
+
           documentAttributeManager.setAttributeOnLine(thisLine, 'context', attributes);
         }
         clientVars.plugins.plugins.ep_context.crudeEnterCounter++;
