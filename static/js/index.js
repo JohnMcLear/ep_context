@@ -728,7 +728,6 @@ function handlePaste(){
       toDestroy.push(index);
     }
 
-
     // See if the line has the whereas content
     var cleanLineText = lineText.toLowerCase();
     var strPosition = false;
@@ -741,6 +740,13 @@ function handlePaste(){
        strPosition = strPos;
       }
     });
+
+    // Remove any lines that just container dashed lines
+    // TODO, use regular expression
+    if(cleanLineText.indexOf("______") === 0 || cleanLineText.indexOf("---") === 0){
+      console.log("herp");
+      toDestroy.push(index);
+    }
 
     cleanLineText = cleanLineText.trim();
     if(hasContext !== false){ // Note that the index may be 0 because so we need this statement
