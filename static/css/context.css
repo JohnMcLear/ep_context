@@ -122,3 +122,11 @@ contextfirstresolved::before{
   opacity:0.4;
   width:auto;
 }
+
+b{
+  font-weight:normal;
+}
+
+u{
+  text-decoration: none;
+}

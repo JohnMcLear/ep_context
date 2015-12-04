@@ -789,7 +789,11 @@ function handlePaste(){
           endLocation = endLocation + numberOfPrefixSpaces;
         }
 
-        // Removes everything noisy to keep things clean, fresh and minty
+        // Removes everything noisy to keep things clean, fresh and minty - PREFIX
+        ace.ace_replaceRange([lineNumber,startLocation], [lineNumber,strPosition+endLocation], "");
+
+        // Removes everything noisy to keep things clean, fresh and minty - SUFFIX
+        // CAKE
         ace.ace_replaceRange([lineNumber,startLocation], [lineNumber,strPosition+endLocation], "");
 
         // Set the Attribute to Whereas for the line
