@@ -744,11 +744,11 @@ function handlePaste(){
     // Remove any lines that just container dashed lines
     // TODO, use regular expression
     if(cleanLineText.indexOf("______") === 0 || cleanLineText.indexOf("---") === 0){
-      console.log("herp");
       toDestroy.push(index);
     }
 
     cleanLineText = cleanLineText.trim();
+
     if(hasContext !== false){ // Note that the index may be 0 because so we need this statement
       // If line has where whereas content then
       // console.log("This line has whereas text", lineText, index);
@@ -768,7 +768,7 @@ function handlePaste(){
         // HACK I don't think this is the best way but for now it will do..
         var attributeLength = documentAttributeManager.rep.alines[lineNumber].length;
         if(attributeLength > 8){
-          startLocation = 1;
+          // startLocation = 1;
           endLocation = endLocation +1;
         }
 
@@ -781,20 +781,38 @@ function handlePaste(){
           stringWithoutContext = stringWithoutContext.substring(1, stringWithoutContext.length);
         }
 
-        // Stripp leading white space
-        var regex = /^\s*/;
-        var numberOfPrefixSpaces = stringWithoutContext.match(regex)[0].length;
 
-        if(numberOfPrefixSpaces){
-          endLocation = endLocation + numberOfPrefixSpaces;
-        }
+        // Strip leading white space
+        // Causesa problem w/ Hoops in the Hood document
+        // var regex = /^\s*/;
+        // var numberOfPrefixSpaces = stringWithoutContext.match(regex)[0].length;
+        // if(numberOfPrefixSpaces){
+        //   endLocation = endLocation + numberOfPrefixSpaces;
+        // }
 
         // Removes everything noisy to keep things clean, fresh and minty - PREFIX
         ace.ace_replaceRange([lineNumber,startLocation], [lineNumber,strPosition+endLocation], "");
 
         // Removes everything noisy to keep things clean, fresh and minty - SUFFIX
-        // CAKE
-        ace.ace_replaceRange([lineNumber,startLocation], [lineNumber,strPosition+endLocation], "");
+
+        // This is temporary logic, we can do this better.
+
+        if(contexts[hasContext] === "Whereas"){
+          var removeThis = "; and,"
+          // If the end of the string has "; and,"
+          // Replace "; and," with ""
+          if(stringWithoutContext.substring(stringWithoutContext.length - removeThis.length, stringWithoutContext.length) === removeThis){
+            // console.log("string has ; and ,", lineNumber, stringWithoutContext);
+            ace.ace_replaceRange([lineNumber,stringWithoutContext.length - removeThis.length -1], [lineNumber,stringWithoutContext.length-1], "");
+          }
+          var removeThis = "; therefore,"
+          // If the end of the string has "; and,"
+          // Replace "; and," with ""
+          if(stringWithoutContext.substring(stringWithoutContext.length - removeThis.length, stringWithoutContext.length) === removeThis){
+            console.log("string has ; therefore,", lineNumber, stringWithoutContext);
+            ace.ace_replaceRange([lineNumber,stringWithoutContext.length - removeThis.length -1], [lineNumber,stringWithoutContext.length-1], "");
+          }
+        }
 
         // Set the Attribute to Whereas for the line
         documentAttributeManager.setAttributeOnLine(lineNumber, 'context', contexts[hasContext]);
