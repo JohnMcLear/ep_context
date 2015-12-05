@@ -200,7 +200,6 @@ exports.postAceInit = function(hook, context){
 };
 
 function reDrawLastLineButton(rep){
-
   var padLength = rep.lines.length();
 
   // padLength is reported as 0 on pad open..  Don't continue
@@ -359,7 +358,7 @@ exports.collectContentLineText = function(hook, context){
 }
 
 // Find out which lines are selected and assign them the context attribute.
-// Passing a level >= 0 will set a context on the selected lines, level < 0 
+// Passing a level >= 0 will set a context on the selected lines, level < 0
 // will remove it
 function doContext(level){
   var documentAttributeManager = this.documentAttributeManager;
@@ -417,7 +416,7 @@ exports.aceInitialized = function(hook, context){
   editorInfo.ace_getLineContext = _(getLineContext).bind(context);
 }
 
-// Here we convert the class context:x into a tag 
+// Here we convert the class context:x into a tag
 exports.aceDomLineProcessLineAttributes = function(name, context){
   var preHtml = "";
   var postHtml = "";
@@ -712,8 +711,8 @@ function handlePaste(){
   var lines = $('iframe[name="ace_outer"]').contents().find('iframe').contents().find("#innerdocbody").children("div");
   var toDestroy = [];
 
-  var contextStrings = ["whereas", "be it resolved", "be it further resolved"];
-  var contexts = ["Whereas", "Resolved", "Resolved"];
+  var contextStrings = ["whereas", "be it resolved", "be it further resolved", "presented by"];
+  var contexts = ["Whereas", "Resolved", "Resolved", "Sponsor"];
 
   // Go through each line of the document
   $.each(lines, function(index, line){
@@ -790,8 +789,10 @@ function handlePaste(){
         //   endLocation = endLocation + numberOfPrefixSpaces;
         // }
 
-        // Removes everything noisy to keep things clean, fresh and minty - PREFIX
-        ace.ace_replaceRange([lineNumber,startLocation], [lineNumber,strPosition+endLocation], "");
+        if(contexts[hasContext] === "Whereas" || contexts[hasContext] === "Resolved"){
+          // Removes everything noisy to keep things clean, fresh and minty - PREFIX
+          ace.ace_replaceRange([lineNumber,startLocation], [lineNumber,strPosition+endLocation], "");
+        }
 
         // Removes everything noisy to keep things clean, fresh and minty - SUFFIX
         // This is temporary logic, we can do this better.
@@ -807,7 +808,7 @@ function handlePaste(){
           // If the end of the string has "; and,"
           // Replace "; and," with ""
           if(stringWithoutContext.substring(stringWithoutContext.length - removeThis.length, stringWithoutContext.length) === removeThis){
-            console.log("string has ; therefore,", lineNumber, stringWithoutContext);
+            // console.log("string has ; therefore,", lineNumber, stringWithoutContext);
             ace.ace_replaceRange([lineNumber,stringWithoutContext.length - removeThis.length -1], [lineNumber,stringWithoutContext.length-1], "");
           }
         }
@@ -851,6 +852,30 @@ function handlePaste(){
     $.each(toDestroy, function(i, lineNumber){
       ace.ace_replaceRange([lineNumber,0], [lineNumber+1,0], "");
     });
+  });
+
+  // Now go through every line looking for lines we have to split
+  // Sponsors get magically broken into two parts!
+  // This doesn't work because of issue #47 where trying to add an additional line with replaceRange will
+  // CAKE
+  // NOTE: Iterating twice is horribly inefficient but we have to because if we don't we get errors
+  // This could be rewritten to perform better though
+  $.each(lines, function(lineNumber, line){
+    var lineText = $(line).text();
+    if(lineText.indexOf("Presented by") === 0){
+      context.editorInfo.ace_callWithAce(function(ace){
+        if(lineText.indexOf(" on ") !== -1) splitLocation = lineText.indexOf(" on ");
+        if(lineText.indexOf("_on_") !== -1) splitLocation = lineText.indexOf("_on_");
+
+        if(!splitLocation) return;
+        // Break the lines up
+        ace.ace_replaceRange([lineNumber-1,splitLocation+1], [lineNumber-1,splitLocation+1], "\n");
+        // Set first line as Sponsor
+        documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'Sponsor');
+        // Sec second line as date
+        documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'Date');
+      });
+    }
   });
 
   // Redraw last line as we modified layout..
