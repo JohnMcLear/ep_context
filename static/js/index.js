@@ -794,9 +794,7 @@ function handlePaste(){
         ace.ace_replaceRange([lineNumber,startLocation], [lineNumber,strPosition+endLocation], "");
 
         // Removes everything noisy to keep things clean, fresh and minty - SUFFIX
-
         // This is temporary logic, we can do this better.
-
         if(contexts[hasContext] === "Whereas"){
           var removeThis = "; and,"
           // If the end of the string has "; and,"
@@ -810,6 +808,15 @@ function handlePaste(){
           // Replace "; and," with ""
           if(stringWithoutContext.substring(stringWithoutContext.length - removeThis.length, stringWithoutContext.length) === removeThis){
             console.log("string has ; therefore,", lineNumber, stringWithoutContext);
+            ace.ace_replaceRange([lineNumber,stringWithoutContext.length - removeThis.length -1], [lineNumber,stringWithoutContext.length-1], "");
+          }
+        }
+        if(contexts[hasContext] === "Resolved"){
+          var removeThis = "; and therefore,"
+          // If the end of the string has "; and,"
+          // Replace "; and," with ""
+          if(stringWithoutContext.substring(stringWithoutContext.length - removeThis.length, stringWithoutContext.length) === removeThis){
+            // console.log("string has ; and ,", lineNumber, stringWithoutContext);
             ace.ace_replaceRange([lineNumber,stringWithoutContext.length - removeThis.length -1], [lineNumber,stringWithoutContext.length-1], "");
           }
         }
