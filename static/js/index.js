@@ -865,11 +865,10 @@ function handlePaste(){
     if(lineText.indexOf("Presented by") === 0){
       context.editorInfo.ace_callWithAce(function(ace){
         if(lineText.indexOf(" on ") !== -1) splitLocation = lineText.indexOf(" on ");
-        if(lineText.indexOf("_on_") !== -1) splitLocation = lineText.indexOf("_on_");
 
         if(!splitLocation) return;
         // Break the lines up
-        ace.ace_replaceRange([lineNumber-1,splitLocation+1], [lineNumber-1,splitLocation+1], "\n");
+        ace.ace_replaceRange([lineNumber-1,splitLocation+2], [lineNumber-1,splitLocation+2], "\n");
         // Set first line as Sponsor
         documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'Sponsor');
         // Sec second line as date
