@@ -34,14 +34,14 @@ exports.postAceInit = function(hook, context){
   var buttonsHTML = '<div id="contextArrow" class="contextButton" unselectable="on">></div>';
   buttonsHTML += '<div id="deleteLineButton" class="contextButton" unselectable="on">-</div>';
   buttonsHTML += '<div id="newLineButton" class="contextButton" unselectable="on">+</div>';
-  var bigButtonHTML = '<button id="bigNewLineButton" style="width:650px;position:absolute;top:0;left:auto;margin-left:133px">+</button>';
+  //var bigButtonHTML = '<button id="bigNewLineButton" style="width:650px;position:absolute;top:0;left:auto;margin-left:133px">+</button>';
   var contextContainer = '<div id="contextContainer" class="contextContainer"><div style="position:absolute; margin-left:-50px; width:100%; top:10px;"></div></div>';
   var optionsHTML = $('.context').html();
   var padOuter = $('iframe[name="ace_outer"]').contents().find('#outerdocbody');
   var padInner = padOuter.find('iframe[name="ace_inner"]').contents();
 
   // Add control stuff to the UI
-  padOuter.find("#sidediv").after(bigButtonHTML);
+  //padOuter.find("#sidediv").after(bigButtonHTML);
   padOuter.find("#sidediv").after(contextControlsContainerHTML);
   padOuter.find("#sidediv").after(contextContainer);
   padOuter.find("#contextButtonsContainer").html(floatingIcons + buttonsHTML);
@@ -255,7 +255,7 @@ exports.aceEditEvent = function(hook, call, cb){
     return false;
   }
 
-  if(cs.docTextChanged === true && cs.domClean === true && cs.repChanged === true && (cs.type === "handleKeyEvent" || cs.type === "context") && clientVars.enterKey){ 
+  if(cs.docTextChanged === true && cs.domClean === true && cs.repChanged === true && (cs.type === "handleKeyEvent" || cs.type === "context") && clientVars.enterKey){
     clientVars.enterKey = false;
     // Define variables
     var lastLine = rep.selStart[0]-1;
