@@ -87,6 +87,7 @@ contextwhereas::after {
 
 contextlastwhereas::before{
   content: 'WHEREAS, ';
+  font-style: italic;
 }
 
 contextlastwhereas::after{
@@ -97,6 +98,7 @@ contextlastwhereas::after{
 contextresolved::before {
   content: 'Be It Further Resolved, ';
   font-style: italic;
+  text-transform: uppercase;
 }
 
 contextresolved::after {
@@ -106,6 +108,7 @@ contextresolved::after {
 contextlastresolved::before{
   content: 'Be It Further Resolved, ';
   font-style: italic;
+  text-transform: uppercase;
 }
 
 contextfirstresolved::before{
