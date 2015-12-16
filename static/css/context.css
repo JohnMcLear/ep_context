@@ -114,6 +114,7 @@ contextlastresolved::before{
 contextfirstresolved::before{
   content: 'Be It Resolved, ';
   font-style: italic;
+  text-transform: uppercase;
 }
 .nocontext{
   color:red;
