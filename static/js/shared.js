@@ -1,4 +1,3 @@
-// var supportedContexts = ["contextsponsor", "contexttitle", "contextwhereas", "contextresolved", "contextsignature", "contextdate", "contextlastwhereas", "contextlastresolved", "contextfirstresolved"];
 var supportedContexts = [];
 
 $.each(contexts, function(context){

@@ -82,7 +82,7 @@ exports.getLineHTMLForExport = function (hook, line) {
       }
 
       // TODO, ensure this is not hard coded..  Impossible to parse CSS prolly so need a decent solution
-      if(contextV === "Whereas"){
+      if(contextV === "whereas"){
         before += "WHEREAS, "
         after += ", and";
       }
@@ -90,7 +90,7 @@ exports.getLineHTMLForExport = function (hook, line) {
         before += "Be it resolved, "
         after += ", and";
       }
-      if(contextV === "Resolved"){
+      if(contextV === "resolved"){
         before += "Be It Further Resolved, "
         after += ", and";
       }
