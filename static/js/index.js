@@ -3,7 +3,22 @@ var $ = require('ep_etherpad-lite/static/js/rjquery').$;
 var _ = require('ep_etherpad-lite/static/js/underscore');
 var padEditor;
 
-var styles = ["Sponsor", "Title", "Whereas", "Resolved", "Signature", "Date"];
+var styles = [];
+var allContextKeys = [];
+var lastLineContexts = [];
+var contextStrings = []; // Used for Copy/pasting
+$.each(contexts, function(context){
+  if(contexts[context].first && contexts[context].first.before) contextStrings.push(contexts[context].first.before.content);
+  if(contexts[context].second && contexts[context].second.before) contextStrings.push(contexts[context].second.before.content);
+  if(contexts[context].before && contexts[context].before) contextStrings.push(contexts[context].before.content);
+  if(contexts[context].beforelast && contexts[context].beforelast.before) contextStrings.push(contexts[context].beforelast.before.content);
+  if(contexts[context].last && contexts[context].last.before) contextStrings.push(contexts[context].last.before.content);
+  lastLineContexts.push("contextlast"+context);
+  allContextKeys.push(context);
+  styles.push(contexts[context].displayName);
+});
+
+console.log(contextStrings);
 
 // Handle paste events
 exports.acePaste = function(hook, context){
@@ -282,10 +297,12 @@ exports.aceEditEvent = function(hook, call, cb){
           // This is also needed for an event that isn't actually an enter key
           // var blankLine = (call.rep.alines[thisLine] === "*0|1+1");
           // if(!blankLine) return;
-          if(attributes === "lastwhereas") attributes = "Whereas";
-          if(attributes === "lastresolved") attributes = "Resolved";
-          if(attributes === "firstresolved") attributes = "Resolved";
-
+          if(attributes.indexOf("last") === 0){
+            attributes = attributes.substring(4, attributes.length);
+          }
+          if(attributes.indexOf("first") === 0){
+            attributes = attributes.substring(5, attributes.length);
+          }
           documentAttributeManager.setAttributeOnLine(thisLine, 'context', attributes);
         }
         clientVars.plugins.plugins.ep_context.crudeEnterCounter++;
@@ -316,9 +333,14 @@ exports.aceEditEvent = function(hook, call, cb){
         // Show this context as being enabled.
         lastContext = lastContext.replace("context","");
         lastContext = lastContext.charAt(0).toUpperCase() + lastContext.slice(1);
-	if(lastContext === "Lastwhereas") lastContext = "Whereas";
-	if(lastContext === "Lastresolved") lastContext = "Resolved";
-	if(lastContext === "Firstresolved") lastContext = "Resolved";
+
+        if(lastContext.indexOf("last") === 0){
+          lastContext = lastContext.substring(4, lastContext.length);
+        }
+	if(lastContext.indexOf("first") === 5){
+          lastContext = lastContext.substring(4, lastContext.length);
+        }
+
         select.val(lastContext); // side
         $('.context-selection').val(lastContext); // top
       }
@@ -343,12 +365,10 @@ exports.aceAttribsToClasses = function(hook, context){
 // Block elements - Prevents character walking
 exports.aceRegisterBlockElements = function(){
   var styleArr = [];
-  styleArr.push("contextlastwhereas");
-  styleArr.push("contextlastresolved");
-  styleArr.push("contextfirstresolved");
-
-  $.each(styles, function(k,v){
-    styleArr.push("context"+v.toLowerCase());
+  $.each(contexts, function(context){
+    styleArr.push("contextfirst"+context);
+    styleArr.push("context"+context);
+    styleArr.push("contextlast"+context);
   });
   return styleArr;
 }
@@ -371,7 +391,7 @@ function doContext(level){
       // console.log("removing attribute on line");
       documentAttributeManager.removeAttributeOnLine(i, 'context');
     }else{
-      // console.log("set attr on", firstLine, level);
+      console.log("set attr on", firstLine, level);
       documentAttributeManager.setAttributeOnLine(i, 'context', level);
     }
   });
@@ -434,7 +454,7 @@ exports.aceDomLineProcessLineAttributes = function(name, context){
         tag = tag.substring(7,tag.length);
         tag = tag.charAt(0).toUpperCase() + tag.slice(1);
       }
-      if(styles.indexOf(tag) !== -1 || tag === "lastwhereas" || tag === "lastresolved" || tag === "firstresolved"){
+      if(styles.indexOf(tag) !== -1 || tag.indexOf("last") === 0 || tag.indexOf("first") === 0){
         preHtml += '<context' + tag + ' class="context">';
         postHtml += '</context' + tag + ' class="context">';
         processed = true;
@@ -572,13 +592,19 @@ function reDrawContextOnLeft(documentAttributeManager){
     var offset = offsetTop + offsetHeight;
 
     var context = documentAttributeManager.getAttributeOnLine(k, 'context');
+
     if(context){
       // draw the context value on the screen
       if(offset){
-        if(context === "lastwhereas") context = "Whereas";
-        if(context === "lastresolved") context = "Resolved";
-        if(context === "firstresolved") context = "Resolved";
-        if(context === "contextresolved") context = "Resolved";
+
+        if(context.indexOf("last") === 0){
+          context = context.substring(4, context.length);
+        }
+        if(context.indexOf("first") === 0){
+          context = context.substring(5, context.length);
+        }
+        context = context.toLowerCase(); // support legacy docs
+        context = contexts[context].displayName;
         contextContainer.append("<div class='contextLabel' style='top:"+offset+"px'>"+context+"</div>");
       }
     }else{
@@ -596,48 +622,50 @@ function reAssignContextToLastLineOfContextType(documentAttributeManager){
 
   // for each line
   var lines = padInner.contents().find("div");
-  var contexts = {};
+  var thisContexts = {};
   $.each(lines, function(k, line){
-    contexts[k] = {};
+    thisContexts[k] = {};
     // console.log("line", line);
     // Find last contextwhereas
-    var hasContext = $(line).find("contextwhereas, contextlastwhereas, contextresolved, contextlastresolved , contextfirstresolved");
+    var searchString = allContextKeys + "";
+    var hasContext = $(line).find(searchString);
     if(hasContext[0]) var context = hasContext[0].localName;
     // If the line is whereas or lastwhereas context store this data in an object
     if(!hasContext) return;
     if(hasContext.length > 0){
-      contexts[k].hasContext = true;
-      if(context === "contextwhereas" || context === "contextlastwhereas"){
-        contexts[k].context = "whereas"
-      }
-      if(context === "contextresolved" || context === "contextlastresolved" || context === "contextfirstresolved"){
-        contexts[k].context = "resolved"
-      }
+      thisContexts[k].hasContext = true;
+      $.each(contexts, function(context){
+        if(context.indexOf("context") !== -1){
+          thisContexts[k].context = context;
+        }
+      });
     }
-    var isLastLine = $(line).find("contextlastwhereas, contextlastresolved");
+
+    var lastLineSearchString = lastLineContexts + "";
+    var isLastLine = $(line).find(lastLineSearchString);
     if(isLastLine.length > 0){
       // If the line is whereas or lastwhereas context store this data in an object
-      contexts[k].hasLastLine = true;
+      thisContexts[k].hasLastLine = true;
     }
   });
 
   // Go through our existing object and check to see if it's right..
-  $.each(contexts, function(k, line){
+  $.each(thisContexts, function(k, line){
     var lineNumber = parseInt(k);
     var context = line.context;
     var thisLine = line;
     var nextLine = {};
     var prevLine = {};
-    var sizeOfContexts = Object.size(contexts);
+    var sizeOfContexts = Object.size(thisContexts);
 
     // If this is not the first line get the values of the previous line
     if (k > 0){
-      prevLine = contexts[k-1];
+      prevLine = thisContexts[k-1];
     }
     // If this is not the last line get the values of the next line
     if (k < sizeOfContexts){
       var nextLineKey = parseInt(k)+1;
-      if(contexts[nextLineKey]) nextLine = contexts[nextLineKey];
+      if(thisContexts[nextLineKey]) nextLine = thisContexts[nextLineKey];
     }
 
     var context = documentAttributeManager.getAttributeOnLine(lineNumber, 'context');
@@ -652,22 +680,26 @@ function reAssignContextToLastLineOfContextType(documentAttributeManager){
     // So remove it..
     if(thisLine.hasLastLine && nextLine.hasContext && (nextLine.context === thisLine.context)){
       documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
-      if(context === "whereas" || context === "lastwhereas" || context === "firstwhereas") documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'Whereas');
-      if(context === "resolved" || context === "lastresolved" || context === "firstresolved") documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'Resolved');
-      // console.log("removing lastwhereas from ", lineNumber, thisLine)
+      $.each(contexts, function(contextKey){
+        if(context.indexOf(contextKey) !== -1){
+          documentAttributeManager.setAttributeOnLine(lineNumber, 'context', contextKey);
+        }
+      });
+	      // console.log("removing lastwhereas from ", lineNumber, thisLine)
     }
 
-    if(context === "contextfirstresolved" || context === "firstresolved"){
-      // REMOVE FIRSTLINE
-      // If this line has lastwhereas context AND the next line has whereas then this line should not have lastwhereas
-      // So remove it..
-
-      if(thisLine.hasContext && (prevLine.context === "resolved" || prevLine.content === "firstresolved") && context){
-        documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
-        documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'Resolved');
-        // console.log("removing firstwhereas from ", lineNumber, thisLine, prevLine, context)
+    // REMOVE FIRSTLINE
+    // If this line has lastwhereas context AND the next line has whereas then this line should not have lastwhereas
+    // So remove it..
+    $.each(contexts, function(contextKey){
+      if(context.indexOf("contextfirst"+contextKey) !== -1){
+        if(thisLine.hasContext && (prevLine.context === contextKey || prevLine.context === "first"+contextKey) && context){
+          documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
+          documentAttributeManager.setAttributeOnLine(lineNumber, 'context', contextKey);
+          // console.log("removing firstwhereas from ", lineNumber, thisLine, prevLine, context)
+        }
       }
-    }
+    });
 
     // ADD LASTLINE
     // If this line has context and the next line doesn't, then this line should get lastwhereas
@@ -712,7 +744,6 @@ function handlePaste(){
   var toDestroy = [];
 
   var contextStrings = ["whereas", "be it resolved", "be it further resolved", "presented by"];
-  var contexts = ["Whereas", "Resolved", "Resolved", "Sponsor"];
 
   // Go through each line of the document
   $.each(lines, function(index, line){
@@ -789,14 +820,14 @@ function handlePaste(){
         //   endLocation = endLocation + numberOfPrefixSpaces;
         // }
 
-        if(contexts[hasContext] === "Whereas" || contexts[hasContext] === "Resolved"){
+        if(allContextKeys[hasContext] === "Whereas" || allContextKeys[hasContext] === "Resolved"){
           // Removes everything noisy to keep things clean, fresh and minty - PREFIX
           ace.ace_replaceRange([lineNumber,startLocation], [lineNumber,strPosition+endLocation], "");
         }
 
         // Removes everything noisy to keep things clean, fresh and minty - SUFFIX
         // This is temporary logic, we can do this better.
-        if(contexts[hasContext] === "Whereas"){
+        if(allContextKeys[hasContext] === "Whereas"){
           var removeThis = "; and,"
           // If the end of the string has "; and,"
           // Replace "; and," with ""
@@ -812,7 +843,7 @@ function handlePaste(){
             ace.ace_replaceRange([lineNumber,stringWithoutContext.length - removeThis.length -1], [lineNumber,stringWithoutContext.length-1], "");
           }
         }
-        if(contexts[hasContext] === "Resolved"){
+        if(allContextKeys[hasContext] === "Resolved"){
           var removeThis = "; and therefore,"
           // If the end of the string has "; and,"
           // Replace "; and," with ""
@@ -823,7 +854,7 @@ function handlePaste(){
         }
 
         // Set the Attribute to Whereas for the line
-        documentAttributeManager.setAttributeOnLine(lineNumber, 'context', contexts[hasContext]);
+        documentAttributeManager.setAttributeOnLine(lineNumber, 'context', allContextKeys[hasContext]);
       });
     }else{
       var lineNumber = index;
@@ -857,7 +888,6 @@ function handlePaste(){
   // Now go through every line looking for lines we have to split
   // Sponsors get magically broken into two parts!
   // This doesn't work because of issue #47 where trying to add an additional line with replaceRange will
-  // CAKE
   // NOTE: Iterating twice is horribly inefficient but we have to because if we don't we get errors
   // This could be rewritten to perform better though
   $.each(lines, function(lineNumber, line){
