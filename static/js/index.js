@@ -709,15 +709,13 @@ function reAssignContextToLastLineOfContextType(documentAttributeManager){
       // Check to see if this line number already has lastwhere context value
       // var context = documentAttributeManager.getAttributeOnLine(lineNumber, 'context');
       // console.log("Current context of line", lineNumber, context);
-      if(context !== "lastWhereas" && context === "Whereas"){
-        documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
-        documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'lastwhereas');
-      }
 
-      if(context !== "lastResolved" && context === "Resolved" || context === "contextresolved"){
-        documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
-        documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'lastresolved');
-      }
+      $.each(contexts, function(contextKey){
+        if(context !== "last"+contextKey && context === contextKey){
+          documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
+          documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'last'+contextKey);
+        }
+      });
     }
 
     // ADD FIRSTLINE
@@ -727,11 +725,14 @@ function reAssignContextToLastLineOfContextType(documentAttributeManager){
       // Check to see if this line number already has lastwhere context value
       var context = documentAttributeManager.getAttributeOnLine(lineNumber, 'context');
       // console.log("Current context of line", lineNumber, context);
-      if(context === "Resolved" || context === "lastresolved"){
-        // console.log("setting first", lineNumber);
-        documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
-        documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'firstresolved');
-      }
+      $.each(contexts, function(contextKey){
+
+        if(context === contextKey || context === "last"+contextKey){
+          // console.log("setting first", lineNumber);
+          documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
+          documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'first'+contextKey);
+        }
+      });
     }
   });
 }
