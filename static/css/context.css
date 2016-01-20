@@ -69,53 +69,6 @@ margin-left:35px;
 
 /* Specific Context Styling */
 
-contexttitle {
-  text-align:center;
-  display:block;
-  font-size: 18px;
-  line-height: 36px;
-}
-
-contextwhereas::before {
-  content: 'WHEREAS, ';
-  font-style: italic;
-}
-
-contextwhereas::after {
-  content: '; and';
-}
-
-contextlastwhereas::before{
-  content: 'WHEREAS, ';
-  font-style: italic;
-}
-
-contextlastwhereas::after{
-  content: '; now, therefore,';
-}
-
-
-contextresolved::before {
-  content: 'Be It Further Resolved, ';
-  font-style: italic;
-  text-transform: uppercase;
-}
-
-contextresolved::after {
-  content: '; and';
-}
-
-contextlastresolved::before{
-  content: 'Be It Further Resolved, ';
-  font-style: italic;
-  text-transform: uppercase;
-}
-
-contextfirstresolved::before{
-  content: 'Be It Resolved, ';
-  font-style: italic;
-  text-transform: uppercase;
-}
 .nocontext{
   color:red;
 }

@@ -33,9 +33,9 @@
 var contexts = {
   whereas: {
     displayName: "Whereas",
+    css: "color:green",
     before: {
-      content: "Whereas",
-      css: "color:green"
+      content: "Whereas"
     },
     after: {
       content: "; and ,"
@@ -49,55 +49,45 @@ var contexts = {
     displayName: "Resolved",
     css: "color:red",
     before: {
-      content: "Be it resolved",
-      css: "font-size:100px"
+      content: "Be it resolved"
     },
     after: {
-      content: " AND ",
-      css: "font-size:20px"
+      content: " AND "
     },
     first: {
       css: "font-size:12px",
       before:{
-	content: "sdfsdf",
-      	css: "font-size:20px"
+	content: "Be it resolved"
       },
       after:{
-	content: "sdfsdf",
-      	css: "font-size:20px"
+	content: "sdfsdf"
       }
     },
     last: {
-      css: "font-size:12px",
+      css: "font-size:9px",
       before:{
-	content: "Be it further resolved",
-      	css: "font-size:20px"
+	content: "Be it further resolved"
       },
       after:{
-	content: "sdfsdf",
-      	css: "font-size:20px"
+	content: "sdfsdf"
       }
     },
     second: {
       css: "font-size:12px",
       before:{
-	content: "sdfsdf",
-      	css: "font-size:20px"
+	content: "sdfsdf"
       },
       after:{
-	content: "sdfsdf",
-      	css: "font-size:20px"
+	content: "sdfsdf"
       }
     },
     beforelast: {
       css: "font-size:12px",
       before:{
-	content: "sdfsdf",
-      	css: "font-size:20px"
+	content: "sdfsdf"
       },
       after:{
-	content: "sdfsdf",
-      	css: "font-size:20px"
+	content: "sdfsdf"
       }
     }
   }
