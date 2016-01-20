@@ -70,7 +70,7 @@ var contexts = {
     last: {
       css: "font-size:12px",
       before:{
-	content: "sdfsdf",
+	content: "Be it further resolved",
       	css: "font-size:20px"
       },
       after:{

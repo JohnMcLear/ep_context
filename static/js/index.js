@@ -32,6 +32,7 @@ $.each(contexts, function(key, context){
   allContextKeys.push("contextlast"+key);
   styles.push(context.displayName);
 });
+console.log("cSS", contextStartStrings);
 
 // Handle paste events
 exports.acePaste = function(hook, context){
