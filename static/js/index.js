@@ -30,7 +30,12 @@ $.each(contexts, function(key, context){
   allContextKeys.push("contextsecond"+key);
   allContextKeys.push("contextbeforelast"+key);
   allContextKeys.push("contextlast"+key);
-  styles.push(context.displayName);
+  if(context.displayName){
+    styles.push(context.displayName);
+  }else{
+    styles.push(key);
+    contexts[key].displayName = key;
+  }
 });
 
 // Handle paste events

@@ -31,6 +31,12 @@
 ********/
 
 var contexts = {
+  signature:{
+
+  },
+  title: {
+    css: "font-size:24px; line-height:32px;"
+  },
   whereas: {
     displayName: "Whereas",
     css: "color:green",
@@ -40,10 +46,6 @@ var contexts = {
     after: {
       content: "; and ,"
     }
-  },
-  signature: {
-    displayName: "Signature",
-    css: "color:blue"
   },
   resolved: {
     displayName: "Resolved",
