@@ -82,20 +82,6 @@ exports.postAceInit = function(hook, context){
   $(select).hide();
   var controls = controlsContainer.find("#contextArrow, #newLineButton, #deleteLineButton, #contextHint");
 
-  // Selection event
-  /*
-  $('.context-selection').click(function(contextValue){
-    var newValue = $('.context-selection').val();
-    context.ace.callWithAce(function(ace){
-      ace.ace_doContext(newValue);
-    },'context' , true);
-
-    // Re-focus our powers!
-    var innerdoc = padInner[0];
-    $(innerdoc).contents().find("body").blur().focus();
-  });
-  */
-
   $(select).on("keydown", function(e){
     // On tab key of select
     if(e.keyCode === 9){
@@ -847,9 +833,6 @@ function handlePaste(){
           }
         });
 
-// CAKE CAKE CAKE
-
-// BELOW IS STILL TO DO, not sure how best to clean it..  Prolly need to look through last items and strip from those values
         // Removes everything noisy to keep things clean, fresh and minty - SUFFIX
         // This is temporary logic, we can do this better.
         $.each(contexts, function(contextKey, context){
@@ -861,33 +844,7 @@ function handlePaste(){
             }
           }
         });
-/*
-        if(allContextKeys[hasContext] === "whereas"){
-          var removeThis = "; and,"
-          // If the end of the string has "; and,"
-          // Replace "; and," with ""
-          if(stringWithoutContext.substring(stringWithoutContext.length - removeThis.length, stringWithoutContext.length) === removeThis){
-            // console.log("string has ; and ,", lineNumber, stringWithoutContext);
-            ace.ace_replaceRange([lineNumber,stringWithoutContext.length - removeThis.length -1], [lineNumber,stringWithoutContext.length-1], "");
-          }
-          var removeThis = "; therefore,"
-          // If the end of the string has "; and,"
-          // Replace "; and," with ""
-          if(stringWithoutContext.substring(stringWithoutContext.length - removeThis.length, stringWithoutContext.length) === removeThis){
-            // console.log("string has ; therefore,", lineNumber, stringWithoutContext);
-            ace.ace_replaceRange([lineNumber,stringWithoutContext.length - removeThis.length -1], [lineNumber,stringWithoutContext.length-1], "");
-          }
-        }
-        if(allContextKeys[hasContext] === "resolved"){
-          var removeThis = "; and therefore,"
-          // If the end of the string has "; and,"
-          // Replace "; and," with ""
-          if(stringWithoutContext.substring(stringWithoutContext.length - removeThis.length, stringWithoutContext.length) === removeThis){
-            // console.log("string has ; and ,", lineNumber, stringWithoutContext);
-            ace.ace_replaceRange([lineNumber,stringWithoutContext.length - removeThis.length -1], [lineNumber,stringWithoutContext.length-1], "");
-          }
-        }
-*/
+
         // Set the Attribute to Whereas for the line
         documentAttributeManager.setAttributeOnLine(lineNumber, 'context', lineContext);
 
@@ -922,6 +879,11 @@ function handlePaste(){
       ace.ace_replaceRange([lineNumber,0], [lineNumber+1,0], "");
     });
   });
+
+  // CAKE TODO: do this another time..  Not important for initial roll out..
+  // Need a split value IE "Presented by" and " on ", so basically two values..
+  // So if it starts with "presented by" and has "on" then split the line..
+  // Something to add to contexts.js
 
   // Now go through every line looking for lines we have to split
   // Sponsors get magically broken into two parts!
