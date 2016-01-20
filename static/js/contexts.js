@@ -31,6 +31,16 @@
 ********/
 
 var contexts = {
+  whereas: {
+    displayName: "Whereas",
+    before: {
+      content: "Whereas",
+      css: "color:green"
+    },
+    after: {
+      content: "; and ,"
+    }
+  },
   signature: {
     displayName: "Signature",
     css: "color:blue"
@@ -43,7 +53,7 @@ var contexts = {
       css: "font-size:100px"
     },
     after: {
-      content: "sdfsdf",
+      content: " AND ",
       css: "font-size:20px"
     },
     first: {

@@ -7,22 +7,33 @@ var styles = [];
 var allContextKeys = [];
 var lastLineContexts = [];
 var contextStrings = []; // Used for Copy/pasting
-$.each(contexts, function(context){
-  if(contexts[context].first && contexts[context].first.before) contextStrings.push(contexts[context].first.before.content);
-  if(contexts[context].second && contexts[context].second.before) contextStrings.push(contexts[context].second.before.content);
-  if(contexts[context].before && contexts[context].before) contextStrings.push(contexts[context].before.content);
-  if(contexts[context].beforelast && contexts[context].beforelast.before) contextStrings.push(contexts[context].beforelast.before.content);
-  if(contexts[context].last && contexts[context].last.before) contextStrings.push(contexts[context].last.before.content);
-  lastLineContexts.push("contextlast"+context);
-  allContextKeys.push("context"+context);
-  allContextKeys.push("contextfirst"+context);
-  allContextKeys.push("contextsecond"+context);
-  allContextKeys.push("contextbeforelast"+context);
-  allContextKeys.push("contextlast"+context);
-  styles.push(contexts[context].displayName);
-});
+var contextStartStrings = {}; // Used for locating which string starts with a given value
 
-console.log(contextStrings);
+// Setup the relevant lookup objects, one time operation
+$.each(contexts, function(key, context){
+  if(context.first && context.first.before) contextStrings.push(context.first.before.content);
+  if(context.second && context.second.before) contextStrings.push(context.second.before.content);
+  if(context.before && context.before) contextStrings.push(context.before.content);
+  if(context.beforelast && context.beforelast.before) contextStrings.push(context.beforelast.before.content);
+  if(context.last && context.last.before) contextStrings.push(context.last.before.content);
+
+  contextStartStrings[key] = [];
+  if(context.first && context.first.before) contextStartStrings[key].push(context.first.before.content);
+  if(context.second && context.second.before) contextStartStrings[key].push(context.second.before.content);
+  if(context.before && context.before) contextStartStrings[key].push(context.before.content);
+  if(context.beforelast && context.beforelast.before) contextStartStrings[key].push(context.beforelast.before.content);
+  if(context.last && context.last.before) contextStartStrings[key].push(context.last.before.content);
+
+  console.log(contextStartStrings);
+
+  lastLineContexts.push("contextlast"+key);
+  allContextKeys.push("context"+key);
+  allContextKeys.push("contextfirst"+key);
+  allContextKeys.push("contextsecond"+key);
+  allContextKeys.push("contextbeforelast"+key);
+  allContextKeys.push("contextlast"+key);
+  styles.push(context.displayName);
+});
 
 // Handle paste events
 exports.acePaste = function(hook, context){
@@ -307,7 +318,6 @@ exports.aceEditEvent = function(hook, call, cb){
           if(attributes.indexOf("first") === 0){
             attributes = attributes.substring(5, attributes.length);
           }
-console.log("attributes", attributes);
           documentAttributeManager.setAttributeOnLine(thisLine, 'context', attributes);
         }
         clientVars.plugins.plugins.ep_context.crudeEnterCounter++;
@@ -362,7 +372,6 @@ console.log("attributes", attributes);
 exports.aceAttribsToClasses = function(hook, context){
   var classes = [];
   if(context.key == 'context'){
-console.log("cV", context.value);
     classes.push("context:"+context.value);
   }
   return classes;
@@ -397,7 +406,7 @@ function doContext(level){
       // console.log("removing attribute on line");
       documentAttributeManager.removeAttributeOnLine(i, 'context');
     }else{
-      console.log("set attr on", firstLine, level.toLowerCase());
+      // console.log("set attr on", firstLine, level.toLowerCase());
       documentAttributeManager.setAttributeOnLine(i, 'context', level.toLowerCase());
     }
   });
@@ -603,6 +612,7 @@ function reDrawContextOnLeft(documentAttributeManager){
           context = context.substring(5, context.length);
         }
         context = context.toLowerCase(); // support legacy docs
+        console.log("context", context);
         context = contexts[context].displayName;
         contextContainer.append("<div class='contextLabel' style='top:"+offset+"px'>"+context+"</div>");
       }
@@ -668,11 +678,14 @@ function reAssignContextToLastLineOfContextType(documentAttributeManager){
     }
 
     var context = documentAttributeManager.getAttributeOnLine(lineNumber, 'context');
+    nextLine.context = documentAttributeManager.getAttributeOnLine(lineNumber+1, 'context');
+    thisLine.context = context;
 
-    // console.log("prevLine", prevLine);
-    // console.log("thisLine", thisLine);
-    // console.log("nextLine", nextLine);
-
+/*
+    console.log("prevLine", prevLine);
+    console.log("thisLine", thisLine);
+    console.log("nextLine", nextLine);
+*/
     // REMOVE LASTLINE
     // If this line has lastwhereas context AND the next line has whereas then this line should not have lastwhereas
     // If this lines context is the same as the next lines context
@@ -684,14 +697,13 @@ function reAssignContextToLastLineOfContextType(documentAttributeManager){
           documentAttributeManager.setAttributeOnLine(lineNumber, 'context', contextKey);
         }
       });
-	      // console.log("removing lastwhereas from ", lineNumber, thisLine)
     }
 
     // REMOVE FIRSTLINE
     // If this line has lastwhereas context AND the next line has whereas then this line should not have lastwhereas
     // So remove it..
     $.each(contexts, function(contextKey){
-      if(context.indexOf("contextfirst"+contextKey) !== -1){
+      if(context.indexOf("first"+contextKey) !== -1){
         if(thisLine.hasContext && (prevLine.context === contextKey || prevLine.context === "first"+contextKey) && context){
           documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
           documentAttributeManager.setAttributeOnLine(lineNumber, 'context', contextKey);
@@ -708,7 +720,6 @@ function reAssignContextToLastLineOfContextType(documentAttributeManager){
       // Check to see if this line number already has lastwhere context value
       // var context = documentAttributeManager.getAttributeOnLine(lineNumber, 'context');
       // console.log("Current context of line", lineNumber, context);
-
       $.each(contexts, function(contextKey){
         if(context !== "last"+contextKey && context === contextKey){
           documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
@@ -721,17 +732,12 @@ function reAssignContextToLastLineOfContextType(documentAttributeManager){
     // If this is the first line with this context
     $.each(contexts, function(contextKey){
       if(thisLine.hasContext && (prevLine.context !== contextKey)){
-//CAKE
-console.log("here");
-        // console.log("setting first line on ", lineNumber, thisLine);
-        // Check to see if this line number already has lastwhere context value
         var context = documentAttributeManager.getAttributeOnLine(lineNumber, 'context');
-console.log("context", context);
         // console.log("Current context of line", lineNumber, context);
-        if(context === contextKey || context === "last"+contextKey){
-          // console.log("setting first", lineNumber);
+        if(context === contextKey && prevLine.context !== "first"+contextKey){
+          // console.log("setting first", lineNumber, "first"+context);
           documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
-          documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'first'+contextKey);
+          documentAttributeManager.setAttributeOnLine(lineNumber, 'context', "first"+contextKey);
         }
       }
     });
@@ -748,6 +754,7 @@ function handlePaste(){
   // Go through each line of the document
   $.each(lines, function(index, line){
     var lineText = $(line).text();
+    var lineContext = false;
     // console.log("lineText", lineText, "lineText.length", lineText.length);
 
     if (/^\s+$/.test(lineText)){
@@ -764,10 +771,22 @@ function handlePaste(){
     var hasContext = false;
 
     $.each(contextStrings, function(k, contextString){
-      strPos = cleanLineText.indexOf(contextString); // Where is the string in the line
+      strPos = cleanLineText.indexOf(contextString.toLowerCase()); // Where is the string in the line
       if(strPos !== -1){
-       hasContext = k; // Sets which context we have
-       strPosition = strPos;
+
+        // How do we know which context ID this contextString is from?
+        $.each(contextStartStrings, function(key, strings){
+          $.each(strings, function(k, startString){
+            if( cleanLineText.indexOf(startString.toLowerCase()) !== -1){
+              lineContext = key;
+            }
+          });
+        });
+
+        // I'm not sure why we can't use this simple value above..
+        // TODO: investigate this bit further
+        hasContext = k; // Sets which context we have
+        strPosition = strPos;
       }
     });
 
@@ -778,12 +797,10 @@ function handlePaste(){
     }
 
     cleanLineText = cleanLineText.trim();
-
     if(hasContext !== false){ // Note that the index may be 0 because so we need this statement
       // If line has where whereas content then
       // console.log("This line has whereas text", lineText, index);
       // move caret to this location
-
       var lineNumber = index;
 
       context.editorInfo.ace_callWithAce(function(ace){
@@ -804,7 +821,6 @@ function handlePaste(){
 
         // Check to see if there is any white space prefixing the string.
         var stringWithoutContext = cleanLineText.substring(contextStrings[hasContext].length,cleanLineText.length);
-
         // Strip leading ,'s a common cause of gum disease
         if(stringWithoutContext[0] === ","){
           endLocation++;
@@ -821,16 +837,27 @@ function handlePaste(){
         // }
 
         $.each(contexts, function(contextKey){
-          if(allContextKeys[hasContext] === contextKey){
+          if(contextKey === lineContext){
             // Removes everything noisy to keep things clean, fresh and minty - PREFIX
             ace.ace_replaceRange([lineNumber,startLocation], [lineNumber,strPosition+endLocation], "");
           }
         });
 
+// CAKE CAKE CAKE
 
 // BELOW IS STILL TO DO, not sure how best to clean it..  Prolly need to look through last items and strip from those values
         // Removes everything noisy to keep things clean, fresh and minty - SUFFIX
         // This is temporary logic, we can do this better.
+        $.each(contexts, function(contextKey, context){
+          if(context.after && context.after.content){
+            var removeThis = contexts[contextKey].after.content;
+            if(stringWithoutContext.substring(stringWithoutContext.length - removeThis.length, stringWithoutContext.length) === removeThis){
+              // console.log("string has ; and ,", lineNumber, stringWithoutContext);
+              ace.ace_replaceRange([lineNumber,stringWithoutContext.length - removeThis.length -1], [lineNumber,stringWithoutContext.length-1], "");
+            }
+          }
+        });
+/*
         if(allContextKeys[hasContext] === "whereas"){
           var removeThis = "; and,"
           // If the end of the string has "; and,"
@@ -856,9 +883,12 @@ function handlePaste(){
             ace.ace_replaceRange([lineNumber,stringWithoutContext.length - removeThis.length -1], [lineNumber,stringWithoutContext.length-1], "");
           }
         }
-
+*/
         // Set the Attribute to Whereas for the line
-        documentAttributeManager.setAttributeOnLine(lineNumber, 'context', allContextKeys[hasContext]);
+        documentAttributeManager.setAttributeOnLine(lineNumber, 'context', lineContext);
+
+
+
       });
     }else{
       var lineNumber = index;
@@ -896,6 +926,8 @@ function handlePaste(){
   // This could be rewritten to perform better though
   $.each(lines, function(lineNumber, line){
     var lineText = $(line).text();
+    // Disabled for now...
+    /*
     if(lineText.indexOf("Presented by") === 0){
       context.editorInfo.ace_callWithAce(function(ace){
         if(lineText.indexOf(" on ") !== -1) splitLocation = lineText.indexOf(" on ");
@@ -909,6 +941,7 @@ function handlePaste(){
         documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'Date');
       });
     }
+    */
   });
 
   // Redraw last line as we modified layout..
