@@ -24,8 +24,6 @@ $.each(contexts, function(key, context){
   if(context.beforelast && context.beforelast.before) contextStartStrings[key].push(context.beforelast.before.content);
   if(context.last && context.last.before) contextStartStrings[key].push(context.last.before.content);
 
-  console.log(contextStartStrings);
-
   lastLineContexts.push("contextlast"+key);
   allContextKeys.push("context"+key);
   allContextKeys.push("contextfirst"+key);
@@ -694,6 +692,7 @@ function reAssignContextToLastLineOfContextType(documentAttributeManager){
       documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
       $.each(contexts, function(contextKey){
         if(context.indexOf(contextKey) !== -1){
+          // console.warn("removed lastline from ", lineNumber);
           documentAttributeManager.setAttributeOnLine(lineNumber, 'context', contextKey);
         }
       });
@@ -706,6 +705,7 @@ function reAssignContextToLastLineOfContextType(documentAttributeManager){
       if(context.indexOf("first"+contextKey) !== -1){
         if(thisLine.hasContext && (prevLine.context === contextKey || prevLine.context === "first"+contextKey) && context){
           documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
+          // console.warn("set NORMAL on ", lineNumber);
           documentAttributeManager.setAttributeOnLine(lineNumber, 'context', contextKey);
           // console.log("removing firstwhereas from ", lineNumber, thisLine, prevLine, context)
         }
@@ -715,13 +715,14 @@ function reAssignContextToLastLineOfContextType(documentAttributeManager){
     // ADD LASTLINE
     // If this line has context and the next line doesn't, then this line should get lastwhereas
     // If this line has different context to the next line
-    if(thisLine.hasContext && prevLine.hasContext && (nextLine.context !== thisLine.context)){
+    if(thisLine.hasContext && prevLine.hasContext && (nextLine.context !== thisLine.context && nextLine.context !== "last"+thisLine.context)){
       // console.log("setting last line on ", lineNumber, thisLine);
       // Check to see if this line number already has lastwhere context value
       // var context = documentAttributeManager.getAttributeOnLine(lineNumber, 'context');
       // console.log("Current context of line", lineNumber, context);
       $.each(contexts, function(contextKey){
         if(context !== "last"+contextKey && context === contextKey){
+          // console.warn("set LASTLINE on ", lineNumber);
           documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
           documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'last'+contextKey);
         }
@@ -736,6 +737,7 @@ function reAssignContextToLastLineOfContextType(documentAttributeManager){
         // console.log("Current context of line", lineNumber, context);
         if(context === contextKey && prevLine.context !== "first"+contextKey){
           // console.log("setting first", lineNumber, "first"+context);
+          // console.warn("set FIRSTLINE on ", lineNumber);
           documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
           documentAttributeManager.setAttributeOnLine(lineNumber, 'context', "first"+contextKey);
         }
