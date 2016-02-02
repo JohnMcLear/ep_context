@@ -68,7 +68,7 @@ exports.getLineHTMLForExport = function (hook, line) {
   if (contexts.length) {
     contexts.forEach(function(contextV){
       if(contextV.indexOf("context") !== 0){
-        before += "<p class='context context" + contextV + "'>";
+        before += "<p class='context context" + contextV + "'><span class='contextbefore'>";
       }else{
         before += "<p class='" + contextV + "'>";
       }
@@ -94,10 +94,12 @@ exports.getLineHTMLForExport = function (hook, line) {
         after += "; now, therefore,"
       }
 
+      before += "</span>"
+
       after += "</p>";
     });
     // Remove leading * else don't..
-    var newString = "<span class='contextbefore'>" + before + "</span>" + line.lineContent.substring(1) + "<span class='contextafter'>" + after + "</span>" + "<br>";
+    var newString = before + line.lineContent.substring(1) + "<span class='contextafter'>" + after + "</span>" + "<br>";
     return newString;
   }else{ // no context, nothing to remove
     return line.lineContent;
