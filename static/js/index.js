@@ -615,26 +615,31 @@ function reDrawContextOnLeft(documentAttributeManager){
 
     var context = documentAttributeManager.getAttributeOnLine(k, 'context');
 
-    if(context){
-      // draw the context value on the screen
-      if(offset){
+    // Given hello$$world returns ["hello","world"];
+    var splitContexts = context.split("$$");
 
-        if(context.indexOf("last") === 0){
-          context = context.substring(4, context.length);
-        }
-        if(context.indexOf("first") === 0){
-          context = context.substring(5, context.length);
-        }
-        context = context.toLowerCase(); // support legacy docs
-console.log("context", context);
-        context = contexts[context].displayName;
-        contextContainer.append("<div class='contextLabel' style='top:"+offset+"px'>"+context+"</div>");
-      }
-    }else{
-      if(offset){ // Handle bug where it would randomly throw a context label at offset 0
-        contextContainer.append("<div class='contextLabel nocontext' style='top:"+offset+"px'>No Context</div>");
-      }
+    context = splitContexts[splitContexts.length-1];
+    console.log("lC", context);
+
+    if(!context){
+      // No context available to draw a big No Context thingy
+      contextContainer.append("<div class='contextLabel nocontext' style='top:"+offset+"px'>No Context</div>");
+      return;
     }
+    if(!offset) return;
+
+    // Process first and last items from metacontexts down to contexts
+    if(context.indexOf("last") === 0){
+      context = context.substring(4, context.length);
+    }
+    if(context.indexOf("first") === 0){
+      context = context.substring(5, context.length);
+    }
+
+    context = context.toLowerCase(); // support legacy docs
+
+    // draw the context value on the screen
+    contextContainer.append("<div class='contextLabel' style='top:"+offset+"px'>"+contexts[context].displayName+"</div>");
   });
 }
 
