@@ -393,11 +393,33 @@ function doContext(level){
   firstLine = rep.selStart[0];
   lastLine = Math.max(firstLine, rep.selEnd[0] - ((rep.selEnd[1] === 0) ? 1 : 0));
   _(_.range(firstLine, lastLine + 1)).each(function(i){
+
+    var context = documentAttributeManager.getAttributeOnLine(i, 'context');
+
+    // ADDING A LEVEL
+    if(context !== "dummy" && context !== "" && level !== "dummy"){
+      // console.log("adding a level");
+      level = context + "$$" + level;
+    }
+
+    // DROPPING A LEVEL
     if(level === "dummy"){
+      // Drop a level
+      var contexts = context.split("$$");
+      contexts.pop();
+      level = contexts.join("$$");
+      // console.log("Dropped a level to", level);
+    }
+
+    // REMOVING CONTEXT ALLTOGETHER
+    if(level === "dummy" && (context === "dummy" || !context)){
       // console.log("removing attribute on line");
       documentAttributeManager.removeAttributeOnLine(i, 'context');
-    }else{
-      // console.log("set attr on", firstLine, level.toLowerCase());
+    }
+
+    // SETTING ATTRIBUTE ON LINE
+    if(level !== "dummy"){
+      //console.log("set attr on", firstLine, level.toLowerCase());
       documentAttributeManager.setAttributeOnLine(i, 'context', level.toLowerCase());
     }
   });
@@ -414,7 +436,7 @@ function getLastContext(context, cb){
     // Does range already have attribute?
     var attributes = documentAttributeManager.getAttributeOnLine(i, 'context');
     // take last attribute from attributes, split it
-    var split = attributes.split("$");
+    var split = attributes.split("$$");
     // clean empty values
     split = cleanArray(split);
     var lastContext = split[split.length-1];
@@ -428,7 +450,7 @@ function getLineContext(lineNumber){
   // Does range already have attribute?
   var attributes = documentAttributeManager.getAttributeOnLine(lineNumber, 'context');
   // take last attribute from attributes, split it
-  var split = attributes.split("$");
+  var split = attributes.split("$$");
   // clean empty values
   split = cleanArray(split);
   var lastContext = split[split.length-1];
@@ -452,12 +474,15 @@ exports.aceDomLineProcessLineAttributes = function(name, context){
   if(!contextsFound && !processed) return [];
   if(contextsFound){
     var context = contextsFound[1];
-    $.each(allContextKeys, function(k, contextKey){
-      if(contextKey === "context"+context){
-        preHtml += '<context' + context + ' class="context">';
-        postHtml += '</context' + context + ' class="context">';
-        processed = true;
-      }
+    var splitContexts = context.split("$$");
+    $.each(splitContexts, function(k, context){
+      $.each(allContextKeys, function(k, contextKey){
+        if(contextKey === "context"+context){
+          preHtml += '<context' + context + ' class="context">';
+          postHtml += '</context' + context + ' class="context">';
+          processed = true;
+        }
+      });
     });
   }
 
@@ -592,26 +617,30 @@ function reDrawContextOnLeft(documentAttributeManager){
 
     var context = documentAttributeManager.getAttributeOnLine(k, 'context');
 
-    if(context){
-      // draw the context value on the screen
-      if(offset){
+    // Given hello$$world returns ["hello","world"];
+    var splitContexts = context.split("$$");
 
-        if(context.indexOf("last") === 0){
-          context = context.substring(4, context.length);
-        }
-        if(context.indexOf("first") === 0){
-          context = context.substring(5, context.length);
-        }
-        context = context.toLowerCase(); // support legacy docs
-        console.log("context", context);
-        context = contexts[context].displayName;
-        contextContainer.append("<div class='contextLabel' style='top:"+offset+"px'>"+context+"</div>");
-      }
-    }else{
-      if(offset){ // Handle bug where it would randomly throw a context label at offset 0
-        contextContainer.append("<div class='contextLabel nocontext' style='top:"+offset+"px'>No Context</div>");
-      }
+    context = splitContexts[splitContexts.length-1];
+
+    if(!context){
+      // No context available to draw a big No Context thingy
+      contextContainer.append("<div class='contextLabel nocontext' style='top:"+offset+"px'>No Context</div>");
+      return;
     }
+    if(!offset) return;
+
+    // Process first and last items from metacontexts down to contexts
+    if(context.indexOf("last") === 0){
+      context = context.substring(4, context.length);
+    }
+    if(context.indexOf("first") === 0){
+      context = context.substring(5, context.length);
+    }
+
+    context = context.toLowerCase(); // support legacy docs
+
+    // draw the context value on the screen
+    contextContainer.append("<div class='contextLabel' style='top:"+offset+"px'>"+contexts[context].displayName+"</div>");
   });
 }
 
@@ -885,7 +914,7 @@ function handlePaste(){
     });
   });
 
-  // CAKE TODO: do this another time..  Not important for initial roll out..
+  // TODO: do this another time..  Not important for initial roll out..
   // Need a split value IE "Presented by" and " on ", so basically two values..
   // So if it starts with "presented by" and has "on" then split the line..
   // Something to add to contexts.js
@@ -982,6 +1011,5 @@ function generateCSSFromContexts(){
     cssItems.push(idCssItems);
   });
   var cssString = cssItems.join("\n");
-  console.log(cssString);
   return cssString;
 }

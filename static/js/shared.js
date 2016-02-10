@@ -1,10 +1,11 @@
 var supportedContexts = [];
+var contexts = require('./contexts').contexts;
 
-$.each(contexts, function(context){
+for (var context in contexts){
   supportedContexts.push("context" + context);
   supportedContexts.push("contextfirst" + context);
   supportedContexts.push("contextlast" + context);
-});
+}
 
 exports.collectContentPre = function(hook, context){
   var tname = context.tname;
@@ -14,7 +15,6 @@ exports.collectContentPre = function(hook, context){
     delete lineAttributes['context'];
   }
   if(supportedContexts.indexOf(tname) !== -1){
-    console.log(tname);
     lineAttributes['context'] = tname;
   }
 
