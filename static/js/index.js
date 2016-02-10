@@ -395,7 +395,7 @@ function doContext(level){
   _(_.range(firstLine, lastLine + 1)).each(function(i){
 
     var context = documentAttributeManager.getAttributeOnLine(i, 'context');
-
+console.log("context", context, "level", level);
     // ADDING A LEVEL
     if(context !== "dummy" && context !== "" && level !== "dummy"){
       // console.log("adding a level");
@@ -407,14 +407,16 @@ function doContext(level){
       // Drop a level
       var contexts = context.split("$$");
       contexts.pop();
-      level = contexts.join("$$");
-      // console.log("Dropped a level to", level);
-    }
+      var joinedLevel = contexts.join("$$");
 
-    // REMOVING CONTEXT ALLTOGETHER
-    if(level === "dummy" && (context === "dummy" || !context)){
-      // console.log("removing attribute on line");
-      documentAttributeManager.removeAttributeOnLine(i, 'context');
+      // REMOVING CONTEXT ALLTOGETHER
+      if(level === "dummy" && contexts.length === 0){
+        // console.log("removing attribute on line");
+        documentAttributeManager.removeAttributeOnLine(i, 'context');
+      }else{
+        // console.log("not at bottom level so changing context for line");
+        documentAttributeManager.setAttributeOnLine(i, 'context', joinedLevel.toLowerCase());
+      }
     }
 
     // SETTING ATTRIBUTE ON LINE
