@@ -363,6 +363,9 @@ exports.aceEditEvent = function(hook, call, cb){
 exports.aceAttribsToClasses = function(hook, context){
   var classes = [];
   if(context.key == 'context'){
+
+  console.log(context.value);
+
     classes.push("context:"+context.value);
   }
   return classes;
@@ -475,12 +478,15 @@ exports.aceDomLineProcessLineAttributes = function(name, context){
   if(!contextsFound && !processed) return [];
   if(contextsFound){
     var context = contextsFound[1];
-    $.each(allContextKeys, function(k, contextKey){
-      if(contextKey === "context"+context){
-        preHtml += '<context' + context + ' class="context">';
-        postHtml += '</context' + context + ' class="context">';
-        processed = true;
-      }
+    var splitContexts = context.split("$$");
+    $.each(splitContexts, function(k, context){
+      $.each(allContextKeys, function(k, contextKey){
+        if(contextKey === "context"+context){
+          preHtml += '<context' + context + ' class="context">';
+          postHtml += '</context' + context + ' class="context">';
+          processed = true;
+        }
+      });
     });
   }
 
@@ -913,7 +919,7 @@ function handlePaste(){
     });
   });
 
-  // CAKE TODO: do this another time..  Not important for initial roll out..
+  // TODO: do this another time..  Not important for initial roll out..
   // Need a split value IE "Presented by" and " on ", so basically two values..
   // So if it starts with "presented by" and has "on" then split the line..
   // Something to add to contexts.js
