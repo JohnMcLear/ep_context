@@ -418,8 +418,8 @@ function doContext(level){
     }
 
     // SETTING ATTRIBUTE ON LINE
-    if(level !== "dummy"){
-      //console.log("set attr on", firstLine, level.toLowerCase());
+    if(level !== "dummy" && level){
+      // console.log("set attr on", firstLine, level.toLowerCase());
       documentAttributeManager.setAttributeOnLine(i, 'context', level.toLowerCase());
     }
   });
