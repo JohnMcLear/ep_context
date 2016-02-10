@@ -363,9 +363,6 @@ exports.aceEditEvent = function(hook, call, cb){
 exports.aceAttribsToClasses = function(hook, context){
   var classes = [];
   if(context.key == 'context'){
-
-  console.log(context.value);
-
     classes.push("context:"+context.value);
   }
   return classes;
@@ -398,7 +395,6 @@ function doContext(level){
   _(_.range(firstLine, lastLine + 1)).each(function(i){
 
     var context = documentAttributeManager.getAttributeOnLine(i, 'context');
-    console.log("previouss context herp", context);
 
     // ADDING A LEVEL
     if(context !== "dummy" && context !== "" && level !== "dummy"){
@@ -625,7 +621,6 @@ function reDrawContextOnLeft(documentAttributeManager){
     var splitContexts = context.split("$$");
 
     context = splitContexts[splitContexts.length-1];
-    console.log("lC", context);
 
     if(!context){
       // No context available to draw a big No Context thingy
