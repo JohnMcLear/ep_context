@@ -395,7 +395,6 @@ function doContext(level){
   _(_.range(firstLine, lastLine + 1)).each(function(i){
 
     var context = documentAttributeManager.getAttributeOnLine(i, 'context');
-console.log("context", context, "level", level);
     // ADDING A LEVEL
     if(context !== "dummy" && context !== "" && level !== "dummy"){
       // console.log("adding a level");
