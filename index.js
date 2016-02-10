@@ -1,13 +1,16 @@
 var eejs = require('ep_etherpad-lite/node/eejs/');
 var Changeset = require("ep_etherpad-lite/static/js/Changeset");
 var sanitize = require('./sanitizer.js').sanitize;
+var contexts = require("./static/js/contexts.js");
 var Security = require('ep_etherpad-lite/static/js/security');
 var _encodeWhitespace = require('ep_etherpad-lite/node/utils/ExportHelper')._encodeWhitespace;
 
+/*
 var stylesCSS = [".contextTitle{text-align:center;display:block;font-size:18px;line-height:20px;}\n",
   ".contexttitle{text-align:center;display:block;font-size:18px;line-height:20px;}\n",
   "br{display:none}\n"
 ];
+*/
 
 /********************
 * UI
@@ -22,6 +25,10 @@ exports.eejsBlock_dd_format = function (hook_name, args, cb) {
   return cb();
 }
 
+exports.eejsBlock_scripts = function (hook_name, args, cb) {
+  args.content = args.content + "<script src='../static/plugins/ep_context/static/js/contexts.js'></script>";
+  return cb();
+}
 
 /********************
 * Editor
@@ -40,6 +47,7 @@ exports.aceAttribClasses = function(hook_name, attr, cb){
 // Include CSS for HTML export
 exports.stylesForExport = function(hook, padId, cb){
   var css = "";
+  var stylesCSS = cssFromContexts();
   stylesCSS.forEach(function(style){
     css += "\n" + style;
   });
@@ -74,7 +82,7 @@ exports.getLineHTMLForExport = function (hook, line) {
       }
 
       // TODO, ensure this is not hard coded..  Impossible to parse CSS prolly so need a decent solution
-      if(contextV === "Whereas"){
+      if(contextV === "whereas"){
         before += "WHEREAS, "
         after += ", and";
       }
@@ -82,7 +90,7 @@ exports.getLineHTMLForExport = function (hook, line) {
         before += "Be it resolved, "
         after += ", and";
       }
-      if(contextV === "Resolved"){
+      if(contextV === "resolved"){
         before += "Be It Further Resolved, "
         after += ", and";
       }
@@ -126,4 +134,19 @@ function _analyzeLine(alineAttrs, apool) {
     }
   }
   return context;
+}
+
+
+function cssFromContexts(){
+  var formattedCSS = [];
+  for(var prop in contexts){
+    var context = contexts[prop];
+    if(context.css){
+      var css = ".context"+prop+"{"+context.css+"};";
+      console.log("pushed");
+      formattedCSS.push(css);
+    }
+  }
+  console.log(formattedCSS);
+  return formattedCSS;
 }
