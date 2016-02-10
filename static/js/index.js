@@ -393,11 +393,34 @@ function doContext(level){
   firstLine = rep.selStart[0];
   lastLine = Math.max(firstLine, rep.selEnd[0] - ((rep.selEnd[1] === 0) ? 1 : 0));
   _(_.range(firstLine, lastLine + 1)).each(function(i){
+
+    var context = documentAttributeManager.getAttributeOnLine(i, 'context');
+    console.log("previouss context herp", context);
+
+    // ADDING A LEVEL
+    if(context !== "dummy" && context !== "" && level !== "dummy"){
+      // console.log("adding a level");
+      level = context + "$$" + level;
+    }
+
+    // DROPPING A LEVEL
     if(level === "dummy"){
+      // Drop a level
+      var contexts = context.split("$$");
+      contexts.pop();
+      level = contexts.join("$$");
+      // console.log("Dropped a level to", level);
+    }
+
+    // REMOVING CONTEXT ALLTOGETHER
+    if(level === "dummy" && (context === "dummy" || !context)){
       // console.log("removing attribute on line");
       documentAttributeManager.removeAttributeOnLine(i, 'context');
-    }else{
-      // console.log("set attr on", firstLine, level.toLowerCase());
+    }
+
+    // SETTING ATTRIBUTE ON LINE
+    if(level !== "dummy"){
+      //console.log("set attr on", firstLine, level.toLowerCase());
       documentAttributeManager.setAttributeOnLine(i, 'context', level.toLowerCase());
     }
   });
@@ -414,7 +437,7 @@ function getLastContext(context, cb){
     // Does range already have attribute?
     var attributes = documentAttributeManager.getAttributeOnLine(i, 'context');
     // take last attribute from attributes, split it
-    var split = attributes.split("$");
+    var split = attributes.split("$$");
     // clean empty values
     split = cleanArray(split);
     var lastContext = split[split.length-1];
@@ -428,7 +451,7 @@ function getLineContext(lineNumber){
   // Does range already have attribute?
   var attributes = documentAttributeManager.getAttributeOnLine(lineNumber, 'context');
   // take last attribute from attributes, split it
-  var split = attributes.split("$");
+  var split = attributes.split("$$");
   // clean empty values
   split = cleanArray(split);
   var lastContext = split[split.length-1];
@@ -603,7 +626,7 @@ function reDrawContextOnLeft(documentAttributeManager){
           context = context.substring(5, context.length);
         }
         context = context.toLowerCase(); // support legacy docs
-        console.log("context", context);
+console.log("context", context);
         context = contexts[context].displayName;
         contextContainer.append("<div class='contextLabel' style='top:"+offset+"px'>"+context+"</div>");
       }
@@ -982,6 +1005,5 @@ function generateCSSFromContexts(){
     cssItems.push(idCssItems);
   });
   var cssString = cssItems.join("\n");
-  console.log(cssString);
   return cssString;
 }

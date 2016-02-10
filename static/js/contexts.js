@@ -94,3 +94,8 @@ var contexts = {
     }
   }
 }
+try{
+  exports.contexts = contexts;
+}catch(e){
+  // no drama :)
+}
