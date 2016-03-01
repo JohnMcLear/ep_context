@@ -340,11 +340,12 @@ exports.aceEditEvent = function(hook, call, cb){
         lastContext = lastContext.replace("context","");
         lastContext = lastContext.charAt(0).toUpperCase() + lastContext.slice(1);
 
-        if(lastContext.indexOf("last") === 0){
+        // Process first and last items from metacontexts down to contexts
+        if(lastContext.indexOf("Last") === 0){
           lastContext = lastContext.substring(4, lastContext.length);
         }
-	if(lastContext.indexOf("first") === 5){
-          lastContext = lastContext.substring(4, lastContext.length);
+        if(lastContext.indexOf("First") === 0){
+          lastContext = lastContext.substring(5, lastContext.length);
         }
 
         select.val(lastContext); // side
