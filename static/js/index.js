@@ -111,8 +111,21 @@ exports.postAceInit = function(hook, context){
     }
   });
 
+  // Top control from ribbon
+  $(".context > .context-selection").change(function(contextValue){
+    var newValue = $(".context > .context-selection").val();
+    context.ace.callWithAce(function(ace){
+      ace.ace_doContext(newValue);
+    },'context' , true);
+    // Re-focus our powers!
+    var innerdoc = padInner[0];
+    $(innerdoc).contents().find("body").blur().focus();
+  });
+
+  // Select on side
   $(select).click(function(contextValue){
     var newValue = $(select).val();
+    console.log("new value", select)
     context.ace.callWithAce(function(ace){
       ace.ace_doContext(newValue);
     },'context' , true);
