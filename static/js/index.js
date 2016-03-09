@@ -402,48 +402,69 @@ exports.collectContentLineText = function(hook, context){
 // will remove it
 function doContext(level){
   var documentAttributeManager = this.documentAttributeManager;
+  var ace = this.editorInfo;
   var rep = this.rep;
   var firstLine, lastLine;
-  firstLine = rep.selStart[0];
-  lastLine = Math.max(firstLine, rep.selEnd[0] - ((rep.selEnd[1] === 0) ? 1 : 0));
-  _(_.range(firstLine, lastLine + 1)).each(function(i){
 
-    var context = documentAttributeManager.getAttributeOnLine(i, 'context');
-    // ADDING A LEVEL
-    if(context !== "dummy" && context !== "" && level !== "dummy"){
-      // console.log("adding a level");
-      level = context + "$$" + level;
-    }
+  // Are we apply the context attribute on a full line or a selection?
+  var isLineContext = (rep.selStart[0] === rep.selEnd[0]) && (rep.selStart[1] === rep.selEnd[1]);
 
-    // DROPPING A LEVEL
-    if(level === "dummy"){
-      // Drop a level
-      var contexts = context.split("$$");
-      contexts.pop();
-      var joinedLevel = contexts.join("$$");
+  // Apply Context on Selection
+  if(!isLineContext){
+    console.log("setting attribute on Selection", level);
+    ace.ace_setAttributeOnSelection('context', level);
+    return;
+  }
 
-      // REMOVING CONTEXT ALLTOGETHER
-      if(level === "dummy" && contexts.length === 0){
-        // console.log("removing attribute on line");
-        documentAttributeManager.removeAttributeOnLine(i, 'context');
-      }else{
-        // console.log("not at bottom level so changing context for line");
-        documentAttributeManager.setAttributeOnLine(i, 'context', joinedLevel.toLowerCase());
+  // Apply Context on entire line
+  if(isLineContext){
+    firstLine = rep.selStart[0];
+    lastLine = Math.max(firstLine, rep.selEnd[0] - ((rep.selEnd[1] === 0) ? 1 : 0));
+    _(_.range(firstLine, lastLine + 1)).each(function(i){
+
+      var context = documentAttributeManager.getAttributeOnLine(i, 'context');
+      // ADDING A LEVEL
+      if(context !== "dummy" && context !== "" && level !== "dummy"){
+        // console.log("adding a level");
+        level = context + "$$" + level;
       }
-    }
 
-    // SETTING ATTRIBUTE ON LINE
-    if(level !== "dummy" && level){
-      // console.log("set attr on", firstLine, level.toLowerCase());
-      documentAttributeManager.setAttributeOnLine(i, 'context', level.toLowerCase());
-    }
-  });
+      // DROPPING A LEVEL
+      if(level === "dummy"){
+        // Drop a level
+        var contexts = context.split("$$");
+        contexts.pop();
+        var joinedLevel = contexts.join("$$");
+
+        // REMOVING CONTEXT ALLTOGETHER
+        if(level === "dummy" && contexts.length === 0){
+          // console.log("removing attribute on line");
+          documentAttributeManager.removeAttributeOnLine(i, 'context');
+        }else{
+          // console.log("not at bottom level so changing context for line");
+          documentAttributeManager.setAttributeOnLine(i, 'context', joinedLevel.toLowerCase());
+        }
+      }
+
+      // SETTING ATTRIBUTE ON LINE
+      if(level !== "dummy" && level){
+        // console.log("set attr on", firstLine, level.toLowerCase());
+        documentAttributeManager.setAttributeOnLine(i, 'context', level.toLowerCase());
+      }
+    });
+  }
 }
 
 // Get the context of a line
 function getLastContext(context, cb){
   var rep = context.rep;
   var documentAttributeManager = context.documentAttributeManager;
+
+  console.log(documentAttributeManager);
+
+  var preExistingContext = documentAttributeManager.getAttributesOnCaret('context');
+  console.log("preExistingContext", preExistingContext); // CAKE -- Prolly wont work but worth having for reference
+
   var firstLine, lastLine;
   firstLine = rep.selStart[0];
   lastLine = Math.max(firstLine, rep.selEnd[0] - ((rep.selEnd[1] === 0) ? 1 : 0));
@@ -629,7 +650,6 @@ function reDrawContextOnLeft(documentAttributeManager){
     var offsetTop = $(line)[0].offsetTop || 0
     var offsetHeight = $(line)[0].offsetHeight /2;
     var offset = offsetTop + offsetHeight;
-
     var context = documentAttributeManager.getAttributeOnLine(k, 'context');
 
     // Given hello$$world returns ["hello","world"];
