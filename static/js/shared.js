@@ -17,6 +17,14 @@ exports.collectContentPre = function(hook, context){
   if(supportedContexts.indexOf(tname) !== -1){
     lineAttributes['context'] = tname;
   }
+  console.log("context.cls", context.cls);
+
+  // Added to support Spans -- May be some drama related nonsense here
+  var level = /(?:^| )(context:[A-Za-z0-9]*)/.exec(context.cls);
+  if(level){
+    level = level[0].split(":")[1];
+    context.cc.doAttrib(context.state, "context:" + level);
+  }
 
   // Probably not needed
   // lineAttributes['lastlinebutton'] = true;
