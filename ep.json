@@ -20,6 +20,7 @@
       },
       "hooks": {
         "eejsBlock_editbarMenuLeft": "ep_context/index",
+        "eejsBlock_timesliderBody": "ep_context/index",
         "collectContentPre": "ep_context/static/js/shared",
         "collectContentPost": "ep_context/static/js/shared",
         "eejsBlock_dd_format":"ep_context/index",

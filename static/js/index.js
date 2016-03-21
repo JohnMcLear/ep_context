@@ -533,6 +533,8 @@ function getLineContext(lineNumber){
 }
 
 exports.aceInitialized = function(hook, context){
+  console.log("Does it run?!Q");
+
   var editorInfo = context.editorInfo;
   editorInfo.ace_doContext = _(doContext).bind(context);
   editorInfo.ace_getLastContext = _(getLastContext).bind(context);
@@ -1032,61 +1034,3 @@ Object.size = function(obj) {
   }
   return size;
 };
-
-function generateCSSFromContexts(){
-  var cssItems = []; // For all contexts
-  $.each(contexts, function(id, context){
-    var idCssItems = []; // Specific to this context, will get squashed soon
-    $.each(context, function(position, rules){
-      if(position === "displayName") return;
-
-      // These guys provide basic CSS rules for a context
-      if(position === "css" || position === "after" || position === "before"){
-        if(position === "css"){
-          idCssItems.push("context"+id+" { "+rules+ ";}");
-          idCssItems.push("contextfirst"+id+" { "+rules+ ";}");
-          idCssItems.push("contextsecond"+id+" { "+rules+ ";}");
-          idCssItems.push("contextbeforelast"+id+" { "+rules+ ";}");
-          idCssItems.push("contextlast"+id+" { "+rules+ ";}");
-        }
-        if(position === "after"){
-          idCssItems.push("context"+id+"::after { content: '"+rules.content+ "';}");
-          idCssItems.push("contextfirst"+id+"::after { content: '"+rules.content+ "';}");
-          idCssItems.push("contextsecond"+id+"::after { content: '"+rules.content+ "';}");
-          idCssItems.push("contextbeforelast"+id+"::after { content: '"+rules.content+ "';}");
-          idCssItems.push("contextlast"+id+"::after { content: '"+rules.content+ "';}");
-        }
-        if(position === "before"){
-          idCssItems.push("context"+id+"::before { content: '"+rules.content+ "';}");
-          idCssItems.push("contextfirst"+id+"::before { content: '"+rules.content+ "';}");
-          idCssItems.push("contextsecond"+id+"::before { content: '"+rules.content+ "';}");
-          idCssItems.push("contextbeforelast"+id+"::before { content: '"+rules.content+ "';}");
-          idCssItems.push("contextlast"+id+"::before { content: '"+rules.content+ "';}");
-        }
-      }else{
-        // This is a bit more tricky due to different data structures
-        // Basically these guys handle all other edge cases like first/last item styling
-        $.each(rules, function(type, rule){
-          if(type === "css"){
-            idCssItems.push("context"+position+id+" { "+rule+ "; }");
-          }else{
-            if(type === "before"){
-              idCssItems.push("context"+position+id+"::before { content: '"+rule.content+ "';}");
-            }
-            if(type === "after"){
-              idCssItems.push("context"+position+id+"::after { content: '"+rule.content+ "';}");
-            }
-          }
-        });
-      }
-
-    });
-    // console.log("idCSSItems", idCssItems);
-    idCssItems = idCssItems.join("\n");
-    cssItems.push(idCssItems);
-  });
-  var cssString = cssItems.join("\n");
-  return cssString;
-}
-
-
