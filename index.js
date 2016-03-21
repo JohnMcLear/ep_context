@@ -1,7 +1,8 @@
 var eejs = require('ep_etherpad-lite/node/eejs/');
 var Changeset = require("ep_etherpad-lite/static/js/Changeset");
 var sanitize = require('./sanitizer.js').sanitize;
-var contexts = require("./static/js/contexts.js");
+var contexts = require("./static/js/contexts.js").contexts;
+var generateCSSFromContexts = require("./static/js/contexts.js").generateCSSFromContexts;
 var Security = require('ep_etherpad-lite/static/js/security');
 var _encodeWhitespace = require('ep_etherpad-lite/node/utils/ExportHelper')._encodeWhitespace;
 
@@ -13,7 +14,7 @@ var stylesCSS = [".contextTitle{text-align:center;display:block;font-size:18px;l
 */
 
 /********************
-* UI
+* UI and CSS
 */
 exports.eejsBlock_editbarMenuLeft = function (hook_name, args, cb) {
   args.content = args.content + eejs.require("ep_context/templates/editbarButtons.ejs");
@@ -29,6 +30,17 @@ exports.eejsBlock_scripts = function (hook_name, args, cb) {
   args.content = args.content + "<script src='../static/plugins/ep_context/static/js/contexts.js'></script>";
   return cb();
 }
+
+exports.eejsBlock_timesliderScripts = function (hook_name, args, cb) {
+  args.content = args.content + "<script src='../../../static/plugins/ep_context/static/js/contexts.js'></script>";
+  return cb();
+}
+
+exports.eejsBlock_timesliderBody = function(hook_name, args, cb){
+  args.content = args.content + "<script>var head = $('body').append('<style>'+generateCSSFromContexts()+'</style>')</script>";
+  return cb();
+}
+// timesliderStyles
 
 /********************
 * Editor
@@ -147,6 +159,6 @@ function cssFromContexts(){
       formattedCSS.push(css);
     }
   }
-  console.log(formattedCSS);
   return formattedCSS;
 }
+

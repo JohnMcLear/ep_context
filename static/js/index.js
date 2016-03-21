@@ -344,26 +344,29 @@ exports.aceEditEvent = function(hook, call, cb){
 
   // It looks like we should check to see if this section has this attribute
   setTimeout(function(){ // avoid race condition..
-    getLastContext(call, function(lastContext){
-      if(!lastContext){ // No context set so set to dummy
-        $('.context-selection').val("dummy"); // top
-        select.val("dummy"); // side
-      }else{
-        // Show this context as being enabled.
-        lastContext = lastContext.replace("context","");
-        lastContext = lastContext.charAt(0).toUpperCase() + lastContext.slice(1);
+    padEditor.callWithAce(function(ace){
+      ace.ace_getLastContext(call, function(lastContext){
 
-        // Process first and last items from metacontexts down to contexts
-        if(lastContext.indexOf("Last") === 0){
-          lastContext = lastContext.substring(4, lastContext.length);
-        }
-        if(lastContext.indexOf("First") === 0){
-          lastContext = lastContext.substring(5, lastContext.length);
-        }
+        if(!lastContext){ // No context set so set to dummy
+          $('.context-selection').val("dummy"); // top
+          select.val("dummy"); // side
+        }else{
 
-        select.val(lastContext); // side
-        $('.context-selection').val(lastContext); // top
-      }
+          // Show this context as being enabled.
+          lastContext = lastContext.replace("context","");
+          lastContext = lastContext.charAt(0).toUpperCase() + lastContext.slice(1);
+
+          // Process first and last items from metacontexts down to contexts
+          if(lastContext.indexOf("Last") === 0){
+            lastContext = lastContext.substring(4, lastContext.length);
+          }
+          if(lastContext.indexOf("First") === 0){
+            lastContext = lastContext.substring(5, lastContext.length);
+          }
+          select.val(lastContext); // side
+          $('.context-selection').val(lastContext); // top
+        }
+      });
     });
   },500);
 }
@@ -372,8 +375,7 @@ exports.aceEditEvent = function(hook, call, cb){
 * Editor setup
 ******/
 
-// Our sup/subscript attribute will result in a class
-// I'm not sure if this is actually required..
+// Our context attribute will result in a class
 exports.aceAttribsToClasses = function(hook, context){
   var classes = [];
   if(context.key == 'context'){
@@ -381,6 +383,40 @@ exports.aceAttribsToClasses = function(hook, context){
   }
   return classes;
 }
+
+// CAN PROBABLY DELETE BELOW FOR NOW WE LEAVE IT IN // CAKE
+// Register attributes that are html markup / blocks not just classes
+// This should make export export properly IE <sub>helllo</sub>world
+// will be the output and not <span class=sub>helllo</span>
+exports.aceAttribClasses = function(hook, attr){
+//  console.log("DERP");
+//  $.each("title", function(k, v){
+//    attr[v] = 'tag:'+v;
+//  });
+//  return "context:title";
+//  return attr;
+}
+
+exports.aceCreateDomLine = function(hook_name, args, cb) {
+  if (args.cls.indexOf('context:') >= 0) {
+    var clss = [];
+    var argClss = args.cls.split(" ");
+    var value;
+
+    for (var i = 0; i < argClss.length; i++) {
+      var cls = argClss[i];
+      if (cls.indexOf("context:") != -1) {
+	value = cls.substr(cls.indexOf(":")+1);
+      } else {
+	clss.push(cls);
+      }
+    }
+    return cb([{cls: clss.join(" "), extraOpenTags: "<context"+value+">", extraCloseTags: "</context"+value+">"}]);
+  }
+  return cb();
+};
+
+
 
 // Block elements - Prevents character walking
 exports.aceRegisterBlockElements = function(){
@@ -402,59 +438,83 @@ exports.collectContentLineText = function(hook, context){
 // will remove it
 function doContext(level){
   var documentAttributeManager = this.documentAttributeManager;
+  var ace = this.editorInfo;
   var rep = this.rep;
   var firstLine, lastLine;
-  firstLine = rep.selStart[0];
-  lastLine = Math.max(firstLine, rep.selEnd[0] - ((rep.selEnd[1] === 0) ? 1 : 0));
-  _(_.range(firstLine, lastLine + 1)).each(function(i){
 
-    var context = documentAttributeManager.getAttributeOnLine(i, 'context');
-    // ADDING A LEVEL
-    if(context !== "dummy" && context !== "" && level !== "dummy"){
-      // console.log("adding a level");
-      level = context + "$$" + level;
-    }
+  // Are we apply the context attribute on a full line or a selection?
+  var isLineContext = (rep.selStart[0] === rep.selEnd[0]) && (rep.selStart[1] === rep.selEnd[1]);
 
-    // DROPPING A LEVEL
-    if(level === "dummy"){
-      // Drop a level
-      var contexts = context.split("$$");
-      contexts.pop();
-      var joinedLevel = contexts.join("$$");
+  // Apply Context on Selection
+  if(!isLineContext){
+    console.log("setting attribute on Selection", level);
+    ace.ace_setAttributeOnSelection('context', level);
+    return;
+  }
 
-      // REMOVING CONTEXT ALLTOGETHER
-      if(level === "dummy" && contexts.length === 0){
-        // console.log("removing attribute on line");
-        documentAttributeManager.removeAttributeOnLine(i, 'context');
-      }else{
-        // console.log("not at bottom level so changing context for line");
-        documentAttributeManager.setAttributeOnLine(i, 'context', joinedLevel.toLowerCase());
+  // Apply Context on entire line
+  if(isLineContext){
+    console.log("applying context to entire line");
+    firstLine = rep.selStart[0];
+    lastLine = Math.max(firstLine, rep.selEnd[0] - ((rep.selEnd[1] === 0) ? 1 : 0));
+    _(_.range(firstLine, lastLine + 1)).each(function(i){
+
+      var context = documentAttributeManager.getAttributeOnLine(i, 'context');
+      // ADDING A LEVEL
+      if(context !== "dummy" && context !== "" && level !== "dummy"){
+        // console.log("adding a level");
+        level = context + "$$" + level;
       }
-    }
 
-    // SETTING ATTRIBUTE ON LINE
-    if(level !== "dummy" && level){
-      // console.log("set attr on", firstLine, level.toLowerCase());
-      documentAttributeManager.setAttributeOnLine(i, 'context', level.toLowerCase());
-    }
-  });
+      // DROPPING A LEVEL
+      if(level === "dummy"){
+        // Drop a level
+        var contexts = context.split("$$");
+        contexts.pop();
+        var joinedLevel = contexts.join("$$");
+
+        // REMOVING CONTEXT ALLTOGETHER
+        if(level === "dummy" && contexts.length === 0){
+          // console.log("removing attribute on line");
+          documentAttributeManager.removeAttributeOnLine(i, 'context');
+        }else{
+          // console.log("not at bottom level so changing context for line");
+          documentAttributeManager.setAttributeOnLine(i, 'context', joinedLevel.toLowerCase());
+        }
+      }
+
+      // SETTING ATTRIBUTE ON LINE
+      if(level !== "dummy" && level){
+        // console.log("set attr on", firstLine, level.toLowerCase());
+        documentAttributeManager.setAttributeOnLine(i, 'context', level.toLowerCase());
+      }
+    });
+  }
 }
 
 // Get the context of a line
 function getLastContext(context, cb){
   var rep = context.rep;
+  var ace = this.editorInfo;
   var documentAttributeManager = context.documentAttributeManager;
+
+  // console.log(documentAttributeManager);
+  var preExistingContext = ace.ace_getAttributeOnSelection("context");
+  console.log("preExistingContext", preExistingContext); // CAKE -- Prolly wont work but worth having for reference
+
   var firstLine, lastLine;
   firstLine = rep.selStart[0];
   lastLine = Math.max(firstLine, rep.selEnd[0] - ((rep.selEnd[1] === 0) ? 1 : 0));
   _(_.range(firstLine, lastLine + 1)).each(function(i){
     // Does range already have attribute?
     var attributes = documentAttributeManager.getAttributeOnLine(i, 'context');
+    console.log("attributes", attributes);
     // take last attribute from attributes, split it
     var split = attributes.split("$$");
     // clean empty values
     split = cleanArray(split);
     var lastContext = split[split.length-1];
+    console.log("lastcontext", lastContext);
     return cb(lastContext);
   });
 }
@@ -475,6 +535,7 @@ function getLineContext(lineNumber){
 exports.aceInitialized = function(hook, context){
   var editorInfo = context.editorInfo;
   editorInfo.ace_doContext = _(doContext).bind(context);
+  editorInfo.ace_getLastContext = _(getLastContext).bind(context);
   editorInfo.ace_handlePaste = _(handlePaste).bind(context);
   editorInfo.ace_getLineContext = _(getLineContext).bind(context);
 }
@@ -629,7 +690,6 @@ function reDrawContextOnLeft(documentAttributeManager){
     var offsetTop = $(line)[0].offsetTop || 0
     var offsetHeight = $(line)[0].offsetHeight /2;
     var offset = offsetTop + offsetHeight;
-
     var context = documentAttributeManager.getAttributeOnLine(k, 'context');
 
     // Given hello$$world returns ["hello","world"];
@@ -972,59 +1032,3 @@ Object.size = function(obj) {
   }
   return size;
 };
-
-function generateCSSFromContexts(){
-  var cssItems = []; // For all contexts
-  $.each(contexts, function(id, context){
-    var idCssItems = []; // Specific to this context, will get squashed soon
-    $.each(context, function(position, rules){
-      if(position === "displayName") return;
-
-      // These guys provide basic CSS rules for a context
-      if(position === "css" || position === "after" || position === "before"){
-        if(position === "css"){
-          idCssItems.push("context"+id+" { "+rules+ ";}");
-          idCssItems.push("contextfirst"+id+" { "+rules+ ";}");
-          idCssItems.push("contextsecond"+id+" { "+rules+ ";}");
-          idCssItems.push("contextbeforelast"+id+" { "+rules+ ";}");
-          idCssItems.push("contextlast"+id+" { "+rules+ ";}");
-        }
-        if(position === "after"){
-          idCssItems.push("context"+id+"::after { content: '"+rules.content+ "';}");
-          idCssItems.push("contextfirst"+id+"::after { content: '"+rules.content+ "';}");
-          idCssItems.push("contextsecond"+id+"::after { content: '"+rules.content+ "';}");
-          idCssItems.push("contextbeforelast"+id+"::after { content: '"+rules.content+ "';}");
-          idCssItems.push("contextlast"+id+"::after { content: '"+rules.content+ "';}");
-        }
-        if(position === "before"){
-          idCssItems.push("context"+id+"::before { content: '"+rules.content+ "';}");
-          idCssItems.push("contextfirst"+id+"::before { content: '"+rules.content+ "';}");
-          idCssItems.push("contextsecond"+id+"::before { content: '"+rules.content+ "';}");
-          idCssItems.push("contextbeforelast"+id+"::before { content: '"+rules.content+ "';}");
-          idCssItems.push("contextlast"+id+"::before { content: '"+rules.content+ "';}");
-        }
-      }else{
-        // This is a bit more tricky due to different data structures
-        // Basically these guys handle all other edge cases like first/last item styling
-        $.each(rules, function(type, rule){
-          if(type === "css"){
-            idCssItems.push("context"+position+id+" { "+rule+ "; }");
-          }else{
-            if(type === "before"){
-              idCssItems.push("context"+position+id+"::before { content: '"+rule.content+ "';}");
-            }
-            if(type === "after"){
-              idCssItems.push("context"+position+id+"::after { content: '"+rule.content+ "';}");
-            }
-          }
-        });
-      }
-
-    });
-    // console.log("idCSSItems", idCssItems);
-    idCssItems = idCssItems.join("\n");
-    cssItems.push(idCssItems);
-  });
-  var cssString = cssItems.join("\n");
-  return cssString;
-}
