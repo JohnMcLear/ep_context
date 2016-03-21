@@ -30,6 +30,11 @@ exports.eejsBlock_scripts = function (hook_name, args, cb) {
   return cb();
 }
 
+exports.eejsBlock_timesliderScripts = function (hook_name, args, cb) {
+  args.content = args.content + "<script src='../../../static/plugins/ep_context/static/js/contexts.js'></script>";
+  return cb();
+}
+
 /********************
 * Editor
 */

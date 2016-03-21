@@ -24,6 +24,7 @@
         "collectContentPost": "ep_context/static/js/shared",
         "eejsBlock_dd_format":"ep_context/index",
 	"eejsBlock_scripts": "ep_context/index",
+	"eejsBlock_timesliderScripts": "ep_context/index",
         "aceAttribClasses":"ep_context/index",
         "stylesForExport" : "ep_context/index",
         "exportHtmlAdditionalTags" : "ep_context/index",
