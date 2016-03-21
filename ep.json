@@ -15,7 +15,7 @@
         "collectContentLineText": "ep_context/static/js/index",
         "aceKeyEvent": "ep_context/static/js/index",
         "aceEditorCSS": "ep_context/static/js/context",
-	"acePaste": "ep_context/static/js/index",
+        "acePaste": "ep_context/static/js/index",
         "aceCreateDomLine": "ep_context/static/js/index"
       },
       "hooks": {
