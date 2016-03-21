@@ -6,6 +6,7 @@
         "postAceInit": "ep_context/static/js/index",
         "aceRegisterBlockElements": "ep_context/static/js/index",
         "aceAttribsToClasses": "ep_context/static/js/index",
+        "aceAttribClasses":"ep_context/static/js/index",
         "aceEditEvent": "ep_context/static/js/index",
         "aceDomLineProcessLineAttributes": "ep_context/static/js/index",
         "collectContentPre": "ep_context/static/js/shared",
@@ -14,7 +15,8 @@
         "collectContentLineText": "ep_context/static/js/index",
         "aceKeyEvent": "ep_context/static/js/index",
         "aceEditorCSS": "ep_context/static/js/context",
-	"acePaste": "ep_context/static/js/index"
+	"acePaste": "ep_context/static/js/index",
+        "aceCreateDomLine": "ep_context/static/js/index"
       },
       "hooks": {
         "eejsBlock_editbarMenuLeft": "ep_context/index",
