@@ -514,7 +514,7 @@ function getLastContext(context, cb){
     // clean empty values
     split = cleanArray(split);
     var lastContext = split[split.length-1];
-    console.log("lastcontext", lastContext);
+    // console.log("lastcontext", lastContext);
     return cb(lastContext);
   });
 }
