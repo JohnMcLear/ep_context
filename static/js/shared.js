@@ -17,7 +17,6 @@ exports.collectContentPre = function(hook, context){
   if(supportedContexts.indexOf(tname) !== -1){
     lineAttributes['context'] = tname;
   }
-  console.log("context.cls", context.cls);
 
   // Added to support Spans -- May be some drama related nonsense here
   var level = /(?:^| )(context:[A-Za-z0-9]*)/.exec(context.cls);

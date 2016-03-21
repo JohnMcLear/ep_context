@@ -533,8 +533,6 @@ function getLineContext(lineNumber){
 }
 
 exports.aceInitialized = function(hook, context){
-  console.log("Does it run?!Q");
-
   var editorInfo = context.editorInfo;
   editorInfo.ace_doContext = _(doContext).bind(context);
   editorInfo.ace_getLastContext = _(getLastContext).bind(context);
