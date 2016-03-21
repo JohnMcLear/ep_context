@@ -117,6 +117,7 @@ exports.postAceInit = function(hook, context){
     context.ace.callWithAce(function(ace){
       ace.ace_doContext(newValue);
     },'context' , true);
+
     // Re-focus our powers!
     var innerdoc = padInner[0];
     $(innerdoc).contents().find("body").blur().focus();
@@ -125,7 +126,6 @@ exports.postAceInit = function(hook, context){
   // Select on side
   $(select).click(function(contextValue){
     var newValue = $(select).val();
-    console.log("new value", select)
     context.ace.callWithAce(function(ace){
       ace.ace_doContext(newValue);
     },'context' , true);
@@ -448,7 +448,7 @@ function doContext(level){
   // Apply Context on Selection
   if(!isLineContext){
     console.log("setting attribute on Selection", level);
-    ace.ace_setAttributeOnSelection('context', level);
+    ace.ace_setAttributeOnSelection('context', level.toLowerCase());
     return;
   }
 
