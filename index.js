@@ -153,7 +153,6 @@ function cssFromContexts(){
   var formattedCSS = [];
   for(var prop in contexts){
     var context = contexts[prop];
-    console.log("context", context);
     if(context.css){
       var css = ".context"+prop+"{"+context.css+"};";
       console.log("pushed");
