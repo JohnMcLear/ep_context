@@ -463,6 +463,12 @@ function doContext(level){
 
   // Apply Context on Selection
   if(!isLineContext){
+    if(level === "dummy"){
+      $.each(contexts, function(k, v){
+        ace.ace_setAttributeOnSelection('context:'+k, false);
+      });
+      return;
+    }
     ace.ace_setAttributeOnSelection('context:'+level.toLowerCase(), true);
     return;
   }
