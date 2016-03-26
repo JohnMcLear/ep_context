@@ -427,7 +427,6 @@ exports.aceCreateDomLine = function(hook_name, args, cb) {
 	clss.push(cls);
       }
     }
-console.log("value", value);
     return cb([{cls: clss.join(" "), extraOpenTags: "<context"+value+">", extraCloseTags: "</context"+value+">"}]);
   }
   return cb();
@@ -510,7 +509,6 @@ function doContext(level){
 
 // Get the context of a line
 function getLastContext(editorContext, cb){
-  console.log("go go magic");
   var rep = editorContext.rep;
   var ace = this.editorInfo;
   var documentAttributeManager = editorContext.documentAttributeManager;
@@ -535,27 +533,24 @@ function getLastContext(editorContext, cb){
   });
 
   // See if the current selection has the attribute
-  var attributes = documentAttributeManager.getAttributesOnCaret();
-  $.each(attributes, function(k,v){
-    $.each(contexts, function(context){
-      // This could probably be optimized with a indexOf
-      if(v[0] === "context:"+context){
-        foundOnSelection = context;
-        return false;
-      }
-    });
+  $.each(contexts, function(context){
+    // This could probably be optimized with a indexOf
+    if(documentAttributeManager.getAttributeOnSelection("context:"+context, true)){
+      foundOnSelection = context;
+      return false;
+    }
   });
 
   if(foundOnSelection){
-    console.log("returned a found on selection value", foundOnSelection);
+    // console.log("returned a found on selection value", foundOnSelection);
     return cb(foundOnSelection);
   }
   if(foundOnLine){
-    console.log("returned a found on line value", foundOnLine);
+    // console.log("returned a found on line value", foundOnLine);
     return cb(foundOnLine);
   }
   if(!foundOnSelection && !foundOnLine){
-    console.log("no attribute found");
+    // console.log("no attribute found");
     return cb(null);
   }
 
