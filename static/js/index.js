@@ -335,6 +335,7 @@ exports.aceEditEvent = function(hook, call, cb){
     reAssignContextToLastLineOfContextType(documentAttributeManager);
   }
 
+
   // If the text has changed in the pad I need to redraw the top of the select and the left arrow
 
   // COMMENTED OUT: This is because this logic actually makes the UX way worst as your select can move away from your cursor position
@@ -354,7 +355,17 @@ exports.aceEditEvent = function(hook, call, cb){
 
           // Show this context as being enabled.
           lastContext = lastContext.replace("context","");
-          lastContext = lastContext.charAt(0).toUpperCase() + lastContext.slice(1);
+
+          // Process first and last items from metacontexts down to contexts
+          if(lastContext.indexOf("last") === 0){
+            lastContext = lastContext.substring(4, lastContext.length);
+          }
+          if(lastContext.indexOf("first") === 0){
+            lastContext = lastContext.substring(5, lastContext.length);
+          }
+
+          lastContext = contexts[lastContext].displayName;
+          // lastContext = lastContext.charAt(0).toUpperCase() + lastContext.slice(1);
 
           // Process first and last items from metacontexts down to contexts
           if(lastContext.indexOf("Last") === 0){
@@ -378,8 +389,12 @@ exports.aceEditEvent = function(hook, call, cb){
 // Our context attribute will result in a class
 exports.aceAttribsToClasses = function(hook, context){
   var classes = [];
-  if(context.key == 'context'){
+  if(context.key === 'context'){
     classes.push("context:"+context.value);
+  }
+  if(context.key.indexOf('context') !== -1){
+    var contextSplit = context.key.split(":")[1];
+    if(contextSplit) classes.push("context:"+contextSplit);
   }
   return classes;
 }
@@ -398,6 +413,7 @@ exports.aceAttribClasses = function(hook, attr){
 }
 
 exports.aceCreateDomLine = function(hook_name, args, cb) {
+  // console.log(args.cls);
   if (args.cls.indexOf('context:') >= 0) {
     var clss = [];
     var argClss = args.cls.split(" ");
@@ -411,6 +427,7 @@ exports.aceCreateDomLine = function(hook_name, args, cb) {
 	clss.push(cls);
       }
     }
+console.log("value", value);
     return cb([{cls: clss.join(" "), extraOpenTags: "<context"+value+">", extraCloseTags: "</context"+value+">"}]);
   }
   return cb();
@@ -447,14 +464,13 @@ function doContext(level){
 
   // Apply Context on Selection
   if(!isLineContext){
-    console.log("setting attribute on Selection", level);
-    ace.ace_setAttributeOnSelection('context', level.toLowerCase());
+    ace.ace_setAttributeOnSelection('context:'+level.toLowerCase(), true);
     return;
   }
 
   // Apply Context on entire line
   if(isLineContext){
-    console.log("applying context to entire line");
+    // console.log("applying context to entire line");
     firstLine = rep.selStart[0];
     lastLine = Math.max(firstLine, rep.selEnd[0] - ((rep.selEnd[1] === 0) ? 1 : 0));
     _(_.range(firstLine, lastLine + 1)).each(function(i){
@@ -493,30 +509,56 @@ function doContext(level){
 }
 
 // Get the context of a line
-function getLastContext(context, cb){
-  var rep = context.rep;
+function getLastContext(editorContext, cb){
+  console.log("go go magic");
+  var rep = editorContext.rep;
   var ace = this.editorInfo;
-  var documentAttributeManager = context.documentAttributeManager;
+  var documentAttributeManager = editorContext.documentAttributeManager;
+  var foundOnLine = false;
+  var foundOnSelection = false;
 
-  // console.log(documentAttributeManager);
-  var preExistingContext = ace.ace_getAttributeOnSelection("context");
-  console.log("preExistingContext", preExistingContext); // CAKE -- Prolly wont work but worth having for reference
-
+  // See if the line attributes has an attribute
   var firstLine, lastLine;
   firstLine = rep.selStart[0];
   lastLine = Math.max(firstLine, rep.selEnd[0] - ((rep.selEnd[1] === 0) ? 1 : 0));
   _(_.range(firstLine, lastLine + 1)).each(function(i){
     // Does range already have attribute?
     var attributes = documentAttributeManager.getAttributeOnLine(i, 'context');
-    console.log("attributes", attributes);
+    // console.log("attributes", attributes);
     // take last attribute from attributes, split it
     var split = attributes.split("$$");
     // clean empty values
     split = cleanArray(split);
     var lastContext = split[split.length-1];
-    console.log("lastcontext", lastContext);
-    return cb(lastContext);
+    // return cb(lastContext);
+    foundOnLine = lastContext;
   });
+
+  // See if the current selection has the attribute
+  var attributes = documentAttributeManager.getAttributesOnCaret();
+  $.each(attributes, function(k,v){
+    $.each(contexts, function(context){
+      // This could probably be optimized with a indexOf
+      if(v[0] === "context:"+context){
+        foundOnSelection = context;
+        return false;
+      }
+    });
+  });
+
+  if(foundOnSelection){
+    console.log("returned a found on selection value", foundOnSelection);
+    return cb(foundOnSelection);
+  }
+  if(foundOnLine){
+    console.log("returned a found on line value", foundOnLine);
+    return cb(foundOnLine);
+  }
+  if(!foundOnSelection && !foundOnLine){
+    console.log("no attribute found");
+    return cb(null);
+  }
+
 }
 
 // Get the full context of a line
