@@ -29,7 +29,8 @@
         "aceAttribClasses":"ep_context/index",
         "stylesForExport" : "ep_context/index",
         "exportHtmlAdditionalTags" : "ep_context/index",
-        "getLineHTMLForExport" : "ep_context/index"
+        "getLineHTMLForExport" : "ep_context/index",
+        "expressCreateServer" : "ep_context/index"
       }
     }
   ]

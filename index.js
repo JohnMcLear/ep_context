@@ -5,13 +5,9 @@ var contexts = require("./static/js/contexts.js").contexts;
 var generateCSSFromContexts = require("./static/js/contexts.js").generateCSSFromContexts;
 var Security = require('ep_etherpad-lite/static/js/security');
 var _encodeWhitespace = require('ep_etherpad-lite/node/utils/ExportHelper')._encodeWhitespace;
-
-/*
-var stylesCSS = [".contextTitle{text-align:center;display:block;font-size:18px;line-height:20px;}\n",
-  ".contexttitle{text-align:center;display:block;font-size:18px;line-height:20px;}\n",
-  "br{display:none}\n"
-];
-*/
+var async = require('../../src/node_modules/async');
+var settings = require("ep_etherpad-lite/node/utils/Settings");
+var request = require('request');
 
 /********************
 * UI and CSS
@@ -160,5 +156,69 @@ function cssFromContexts(){
     }
   }
   return formattedCSS;
+}
+
+exports.expressCreateServer = function (hook_name, args, callback) {
+  args.app.get(/\/p\/.*\/contexts/, function(req, res) {
+    console.warn("Grabbing JSON blob from Madison");
+    var fullURL = req.protocol + "://" + req.get('host') + req.url;
+    var path=req.url.split("/");
+    var padId=path[2];
+    var param = path[3].split("=");
+    var action = param[0];
+    var actionId = param[1];
+    var padURL = req.protocol + "://" + req.get('host') + "/p/" +padId;
+    var apiEndpoint = "https://editor.mymadison.io/api/docs/"+padId+"/context";
+
+    if(!settings.ep_api_auth || settings.ep_api_auth.fake){
+      console.error("No settings set for api auth access");
+      apiEndpoint = "http://127.0.0.1/context.json";
+      settings.ep_api_auth = {};
+      settings.ep_api_auth.fake = true;
+    }
+
+    // Get the current document.
+    var documentOptions = {
+      uri: apiEndpoint,
+      method: settings.ep_api_auth.method ? settings.ep_api_auth.method : 'GET',
+      json: true,
+      headers : {
+        Cookie: getAsUriParameters(req.cookies)
+      }
+    };
+    request(documentOptions, function(e,r,styles){
+      res.setHeader('Content-Type', 'application/json');
+      res.send(styles);
+    });
+
+/*
+    async.waterfall(
+      [
+        function(cb) {
+          request(documentOptions, function(e,r,styles){
+          }).promise().done(;
+          cb(null, styles)
+
+        },
+        function(cb, styles){
+          cb(null, styles);
+        }
+      ],
+      function(err, results){
+        console.log("results", results);
+        res.send(results + padId);
+      }
+    );
+*/
+  });
+}
+
+
+function getAsUriParameters(data) {
+  var url = '';
+  for (var prop in data) {
+    url += encodeURIComponent(prop) + '=' + encodeURIComponent(data[prop]) + '; ';
+  }
+  return url.substring(0, url.length - 1)
 }
 
