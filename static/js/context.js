@@ -1,3 +1,4 @@
 exports.aceEditorCSS = function (hook, cb) {
-  return ["/ep_context/static/css/context.css"];
+  console.warn("I run on client");
+  return ["/context/css"];
 };

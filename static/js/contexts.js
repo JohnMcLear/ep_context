@@ -1,8 +1,3 @@
-// This file should be modified to include formatting and styling of your contexts.. 
-
-// This is where you should add contexts too, you will note that each context is a big
-// json blob.  Contexts are powerful things, be careful of dragons..
-
 // Before is the string before ALL items that have this context
 // After is the same as above but after..
 // first only applies to the first item with this context
@@ -30,82 +25,19 @@
 }
 ********/
 
-var contexts = {
-  signature:{
-
-  },
-  title: {
-    css: "font-size:24px; line-height:32px;"
-  },
-  whereas: {
-    displayName: "Whereas",
-    css: "color:green",
-    before: {
-      content: "Whereas"
-    },
-    after: {
-      content: "; and ,"
-    }
-  },
-  resolved: {
-    displayName: "Resolved",
-    css: "color:red",
-    before: {
-      content: "Be it resolved"
-    },
-    after: {
-      content: " AND "
-    },
-    first: {
-      css: "font-size:12px",
-      before:{
-	content: "Be it resolved"
-      },
-      after:{
-	content: "sdfsdf"
-      }
-    },
-    last: {
-      css: "font-size:9px",
-      before:{
-	content: "Be it further resolved"
-      },
-      after:{
-	content: "sdfsdf"
-      }
-    },
-    second: {
-      css: "font-size:12px",
-      before:{
-	content: "sdfsdf"
-      },
-      after:{
-	content: "sdfsdf"
-      }
-    },
-    beforelast: {
-      css: "font-size:12px",
-      before:{
-	content: "sdfsdf"
-      },
-      after:{
-	content: "sdfsdf"
-      }
-    }
-  }
-}
 try{
-  exports.contexts = contexts;
   exports.generateCSSFromContexts = generateCSSFromContexts;
 }catch(e){
   // no drama :)
 }
 
-function generateCSSFromContexts(){
+function generateCSSFromContexts(contexts){
   var cssItems = []; // For all contexts
-  $.each(contexts, function(id, context){
+  Object.keys(contexts).forEach(function(id){
+    var context = contexts[id];
     var idCssItems = []; // Specific to this context, will get squashed soon
-    $.each(context, function(position, rules){
+    Object.keys(context).forEach(function(position){
+      var rules = context[position];
       if(position === "displayName") return;
 
       // These guys provide basic CSS rules for a context
@@ -134,7 +66,9 @@ function generateCSSFromContexts(){
       }else{
         // This is a bit more tricky due to different data structures
         // Basically these guys handle all other edge cases like first/last item styling
-        $.each(rules, function(type, rule){
+
+        Object.keys(rules).forEach(function(type){
+          var rule = rules[type];
           if(type === "css"){
             idCssItems.push("context"+position+id+" { "+rule+ "; }");
           }else{
@@ -146,6 +80,7 @@ function generateCSSFromContexts(){
             }
           }
         });
+
       }
 
     });

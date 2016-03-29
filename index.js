@@ -1,7 +1,6 @@
 var eejs = require('ep_etherpad-lite/node/eejs/');
 var Changeset = require("ep_etherpad-lite/static/js/Changeset");
 var sanitize = require('./sanitizer.js').sanitize;
-var contexts = require("./static/js/contexts.js").contexts;
 var generateCSSFromContexts = require("./static/js/contexts.js").generateCSSFromContexts;
 var Security = require('ep_etherpad-lite/static/js/security');
 var _encodeWhitespace = require('ep_etherpad-lite/node/utils/ExportHelper')._encodeWhitespace;
@@ -24,11 +23,13 @@ exports.eejsBlock_dd_format = function (hook_name, args, cb) {
 
 exports.eejsBlock_scripts = function (hook_name, args, cb) {
   args.content = args.content + "<script src='../static/plugins/ep_context/static/js/contexts.js'></script>";
+  args.content = args.content + "<script src='../context/json'></script>";
   return cb();
 }
 
 exports.eejsBlock_timesliderScripts = function (hook_name, args, cb) {
   args.content = args.content + "<script src='../../../static/plugins/ep_context/static/js/contexts.js'></script>";
+  args.content = args.content + "<script src='../context/json'></script>";
   return cb();
 }
 
@@ -80,6 +81,8 @@ exports.getLineHTMLForExport = function (hook, line) {
 
   var before = "";
   var after = "";
+
+  // we prolly need to do a htt request for contexts here..
 
   if (contexts.length) {
     contexts.forEach(function(contextV){
@@ -145,7 +148,9 @@ function _analyzeLine(alineAttrs, apool) {
 }
 
 
-function cssFromContexts(){
+function cssFromContexts(contexts){
+
+  // we need to do a htt request for contexts here
   var formattedCSS = [];
   for(var prop in contexts){
     var context = contexts[prop];
@@ -159,14 +164,12 @@ function cssFromContexts(){
 }
 
 exports.expressCreateServer = function (hook_name, args, callback) {
-  args.app.get(/\/p\/.*\/contexts/, function(req, res) {
-    console.warn("Grabbing JSON blob from Madison");
+  args.app.get(/\/context\/json/, function(req, res) {
     var fullURL = req.protocol + "://" + req.get('host') + req.url;
-    var path=req.url.split("/");
-    var padId=path[2];
-    var param = path[3].split("=");
-    var action = param[0];
-    var actionId = param[1];
+    var path=req.headers.referer;
+    if(!path) path = "http://127.0.0.1:9001/p/test";
+    var splitPath = path.split("/");
+    var padId= splitPath[4];
     var padURL = req.protocol + "://" + req.get('host') + "/p/" +padId;
     var apiEndpoint = "https://editor.mymadison.io/api/docs/"+padId+"/context";
 
@@ -188,28 +191,41 @@ exports.expressCreateServer = function (hook_name, args, callback) {
     };
     request(documentOptions, function(e,r,styles){
       res.setHeader('Content-Type', 'application/json');
-      res.send(styles);
+      res.send("var contexts = " +JSON.stringify(styles));
     });
+  });
+  args.app.get(/\/context\/css/, function(req, res) {
+    var fullURL = req.protocol + "://" + req.get('host') + req.url;
+    var path=req.headers.referer;
+    if(!path) path = "http://127.0.0.1:9001/p/test";
+    var splitPath = path.split("/");
+    var padId= splitPath[4];
+    var padURL = req.protocol + "://" + req.get('host') + "/p/" +padId;
+    var apiEndpoint = "https://editor.mymadison.io/api/docs/"+padId+"/context";
 
-/*
-    async.waterfall(
-      [
-        function(cb) {
-          request(documentOptions, function(e,r,styles){
-          }).promise().done(;
-          cb(null, styles)
+    if(!settings.ep_api_auth || settings.ep_api_auth.fake){
+      console.error("No settings set for api auth access");
+      apiEndpoint = "http://127.0.0.1/context.json";
+      settings.ep_api_auth = {};
+      settings.ep_api_auth.fake = true;
+    }
 
-        },
-        function(cb, styles){
-          cb(null, styles);
-        }
-      ],
-      function(err, results){
-        console.log("results", results);
-        res.send(results + padId);
+    // Get the current document.
+    var documentOptions = {
+      uri: apiEndpoint,
+      method: settings.ep_api_auth.method ? settings.ep_api_auth.method : 'GET',
+      json: true,
+      headers : {
+        Cookie: getAsUriParameters(req.cookies)
       }
-    );
-*/
+    };
+    request(documentOptions, function(e,r,styles){
+      res.setHeader('Content-Type', 'text/css');
+console.warn("styles", styles, generateCSSFromContexts);
+      var cssStyles = generateCSSFromContexts(styles);
+console.warn("after cssing", cssStyles);
+      res.send("<style type='text/css'>" +cssStyles+ "</styles>");
+    });
   });
 }
 
@@ -221,4 +237,3 @@ function getAsUriParameters(data) {
   }
   return url.substring(0, url.length - 1)
 }
-
