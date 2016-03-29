@@ -9,6 +9,8 @@ var lastLineContexts = [];
 var contextStrings = []; // Used for Copy/pasting
 var contextStartStrings = {}; // Used for locating which string starts with a given value
 
+contexts = contexts.context;
+
 // Setup the relevant lookup objects, one time operation
 $.each(contexts, function(key, context){
   if(context.first && context.first.before) contextStrings.push(context.first.before.content);
@@ -61,7 +63,7 @@ exports.postAceInit = function(hook, context){
   // Temporarily bodge some CSS in for debugging
   var inner = $('iframe[name="ace_outer"]').contents().find('iframe[name="ace_inner"]');
   var head = inner.contents().find("head");
-  $(head).append("<style>"+generateCSSFromContexts()+"</style>");
+  $(head).append("<style>"+generateCSSFromContexts(contexts)+"</style>");
 
 
   var contextControlsContainerHTML = '<div id="contextButtonsContainer" style="display:block;z-index:1;margin-left:50px;"></div>';
@@ -438,6 +440,7 @@ exports.aceCreateDomLine = function(hook_name, args, cb) {
 exports.aceRegisterBlockElements = function(){
   var styleArr = [];
   $.each(contexts, function(context){
+console.log("YO DAWG", context);
     styleArr.push("contextfirst"+context);
     styleArr.push("context"+context);
     styleArr.push("contextlast"+context);
