@@ -126,13 +126,16 @@ exports.getLineHTMLForExport = function (hook, line) {
 }
 
 // clean up HTML into something sane
+// TODO Use Server side logic not hard coded
 exports.exportHTMLSend = function(hook, html, cb){
+  /*
   var blockElements = ["Sponsor", "Title", "Whereas", "Resolved", "Signature", "Date", "LastWhereas", "LastResolved", "FirstResolved"];
   console.warn("um okay");
   sanitize.exec(html, blockElements, function(error, cleanedHTML){
     console.warn(cleanHTML);
     cb(cleanedHTML);
   });
+  */
 }
 
 function _analyzeLine(alineAttrs, apool) {
@@ -221,9 +224,7 @@ exports.expressCreateServer = function (hook_name, args, callback) {
     };
     request(documentOptions, function(e,r,styles){
       res.setHeader('Content-Type', 'text/css');
-console.warn("styles", styles, generateCSSFromContexts);
       var cssStyles = generateCSSFromContexts(styles);
-console.warn("after cssing", cssStyles);
       res.send("<style type='text/css'>" +cssStyles+ "</styles>");
     });
   });

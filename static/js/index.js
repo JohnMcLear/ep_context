@@ -440,7 +440,6 @@ exports.aceCreateDomLine = function(hook_name, args, cb) {
 exports.aceRegisterBlockElements = function(){
   var styleArr = [];
   $.each(contexts, function(context){
-console.log("YO DAWG", context);
     styleArr.push("contextfirst"+context);
     styleArr.push("context"+context);
     styleArr.push("contextlast"+context);
