@@ -31,8 +31,7 @@
         "exportHtmlAdditionalTags" : "ep_context/index",
         "aceAttribClasses":"ep_context/index",
         "getLineHTMLForExport" : "ep_context/index",
-        "expressCreateServer" : "ep_context/index",
-        "asyncLineHTMLForExport" : "ep_context/index"
+        "expressCreateServer" : "ep_context/index"
       }
     }
   ]
