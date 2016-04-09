@@ -46,8 +46,14 @@ exports.eejsBlock_timesliderBody = function(hook_name, args, cb){
 
 // Allow <whatever> to be an attribute
 exports.aceAttribClasses = function(hook_name, attr, cb){
-  attr.contextsection = 'tag:contextsection';
-  cb(attr);
+  // This doesn't appear to be running here or font fam..
+  // I don't think it's even needed as fonnt family works w/ out it
+  /*
+    console.warn("attr", attr);
+    attr.contextsection = 'context:section';
+    attr.contexttitle = 'context:title';
+    cb(attr);
+  */
 }
 
 /********************
@@ -61,11 +67,15 @@ exports.stylesForExport = function(hook, padId, cb){
 
 // Add the props to be supported in export
 exports.exportHtmlAdditionalTags = function(hook, pad, cb){
-  cb(["contextsection"]);
+  var padId = pad.id;
+  cb(contexts[padId].array);
 };
 
 // line, apool,attribLine,text
 exports.getLineHTMLForExport = function (hook, line) {
+
+  /*
+
   var contextV = _analyzeLine(line.attribLine, line.apool);
 
   // If it has a context
@@ -119,6 +129,7 @@ exports.getLineHTMLForExport = function (hook, line) {
   }else{ // no context, nothing to remove
     return line.lineContent;
   }
+  */
 }
 
 // clean up HTML into something sane
@@ -144,22 +155,6 @@ function _analyzeLine(alineAttrs, apool) {
     }
   }
   return context;
-}
-
-
-function cssFromContexts(contexts){
-
-  // we need to do a htt request for contexts here
-  var formattedCSS = [];
-  for(var prop in contexts){
-    var context = contexts[prop];
-    if(context.css){
-      var css = ".context"+prop+"{"+context.css+"};";
-      console.log("pushed");
-      formattedCSS.push(css);
-    }
-  }
-  return formattedCSS;
 }
 
 exports.expressCreateServer = function (hook_name, args, callback) {
@@ -192,6 +187,12 @@ exports.expressCreateServer = function (hook_name, args, callback) {
       // res.setHeader('Content-Type', 'application/javascript');
       // res.send("<script type='text/javascript'>var contexts = " +JSON.stringify(styles) +"</script>");
       contexts[padId] = styles;
+      var styleArr = [];
+      var derp = styles.context;
+      for(var key in derp){
+        styleArr.push("context:"+key);
+      }
+      contexts[padId].array = styleArr;
       res.send("var contexts = " +JSON.stringify(styles));
     });
   });
@@ -236,3 +237,29 @@ function getAsUriParameters(data) {
   }
   return url.substring(0, url.length - 1)
 }
+
+exports.asyncLineHTMLForExport = function (hook, context, cb) {
+  console.warn("here");
+  cb(rewriteLine);
+}
+
+function rewriteLine(context){
+  var lineContent = context.lineContent;
+  // WTF this never runs either on either plugin!
+  console.warn("lineContent", lineContent);
+/*
+  sizes.forEach(function(size){
+    size = size.replace("fs","");
+    if(lineContent){
+      lineContent = lineContent.replaceAll("<fs"+size, "<span style='font-size:"+size+"px'");
+      lineContent = lineContent.replaceAll("</fs"+size, "</span");
+    }
+  });
+*/
+  return lineContent;
+}
+
+String.prototype.replaceAll = function(str1, str2, ignore) 
+{
+  return this.replace(new RegExp(str1.replace(/([\/\,\!\\\^\$\{\}\[\]\(\)\.\*\+\?\|\<\>\-\&])/g,"\\$&"),(ignore?"gi":"g")),(typeof(str2)=="string")?str2.replace(/\$/g,"$$$$"):str2);
+} 
