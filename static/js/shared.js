@@ -14,8 +14,18 @@ exports.collectContentPre = function(hook, context){
   if(tname === "div" || tname === "p"){
     delete lineAttributes['context'];
   }
+
+  // Works for lines
   if(supportedContexts.indexOf(tname) !== -1){
     lineAttributes['context'] = tname;
+  }
+
+  // Works for spans
+  if(tname.indexOf("context") === 0){
+    var ctname = tname.substring(7,tname.length);
+    if(contexts[ctname]){
+      context.cc.doAttrib(context.state, "context:"+ctname);
+    }
   }
 
   // Added to support Spans -- May be some drama related nonsense here
