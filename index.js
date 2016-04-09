@@ -7,6 +7,7 @@ var _encodeWhitespace = require('ep_etherpad-lite/node/utils/ExportHelper')._enc
 var async = require('../../src/node_modules/async');
 var settings = require("ep_etherpad-lite/node/utils/Settings");
 var request = require('request');
+var contexts = {};
 
 /********************
 * UI and CSS
@@ -55,12 +56,7 @@ exports.aceAttribClasses = function(hook_name, attr, cb){
 
 // Include CSS for HTML export
 exports.stylesForExport = function(hook, padId, cb){
-  var css = "";
-  var stylesCSS = cssFromContexts();
-  stylesCSS.forEach(function(style){
-    css += "\n" + style;
-  });
-  cb(css);
+  cb(generateCSSFromContexts(contexts[padId].context));
 };
 
 // Add the props to be supported in export
@@ -193,7 +189,9 @@ exports.expressCreateServer = function (hook_name, args, callback) {
       }
     };
     request(documentOptions, function(e,r,styles){
-      res.setHeader('Content-Type', 'application/json');
+      // res.setHeader('Content-Type', 'application/javascript');
+      // res.send("<script type='text/javascript'>var contexts = " +JSON.stringify(styles) +"</script>");
+      contexts[padId] = styles;
       res.send("var contexts = " +JSON.stringify(styles));
     });
   });

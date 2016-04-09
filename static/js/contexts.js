@@ -48,6 +48,14 @@ function generateCSSFromContexts(contexts){
           idCssItems.push("contextsecond"+id+" { "+rules+ ";}");
           idCssItems.push("contextbeforelast"+id+" { "+rules+ ";}");
           idCssItems.push("contextlast"+id+" { "+rules+ ";}");
+
+          // Note to self, we use block elems in the editor and we use
+          // Spans with classes in export.  Witness me.
+          idCssItems.push(".context"+id+" { "+rules+ ";}");
+          idCssItems.push(".contextfirst"+id+" { "+rules+ ";}");
+          idCssItems.push(".contextsecond"+id+" { "+rules+ ";}");
+          idCssItems.push(".contextbeforelast"+id+" { "+rules+ ";}");
+          idCssItems.push(".contextlast"+id+" { "+rules+ ";}");
         }
         if(position === "after"){
           idCssItems.push("context"+id+"::after { content: '"+rules.content+ "';}");
@@ -55,6 +63,11 @@ function generateCSSFromContexts(contexts){
           idCssItems.push("contextsecond"+id+"::after { content: '"+rules.content+ "';}");
           idCssItems.push("contextbeforelast"+id+"::after { content: '"+rules.content+ "';}");
           idCssItems.push("contextlast"+id+"::after { content: '"+rules.content+ "';}");
+          idCssItems.push(".context"+id+"::after { content: '"+rules.content+ "';}");
+          idCssItems.push(".contextfirst"+id+"::after { content: '"+rules.content+ "';}");
+          idCssItems.push(".contextsecond"+id+"::after { content: '"+rules.content+ "';}");
+          idCssItems.push(".contextbeforelast"+id+"::after { content: '"+rules.content+ "';}");
+          idCssItems.push(".contextlast"+id+"::after { content: '"+rules.content+ "';}");
         }
         if(position === "before"){
           idCssItems.push("context"+id+"::before { content: '"+rules.content+ "';}");
@@ -62,6 +75,11 @@ function generateCSSFromContexts(contexts){
           idCssItems.push("contextsecond"+id+"::before { content: '"+rules.content+ "';}");
           idCssItems.push("contextbeforelast"+id+"::before { content: '"+rules.content+ "';}");
           idCssItems.push("contextlast"+id+"::before { content: '"+rules.content+ "';}");
+          idCssItems.push(".context"+id+"::before { content: '"+rules.content+ "';}");
+          idCssItems.push(".contextfirst"+id+"::before { content: '"+rules.content+ "';}");
+          idCssItems.push(".contextsecond"+id+"::before { content: '"+rules.content+ "';}");
+          idCssItems.push(".contextbeforelast"+id+"::before { content: '"+rules.content+ "';}");
+          idCssItems.push(".contextlast"+id+"::before { content: '"+rules.content+ "';}");
         }
       }else{
         // This is a bit more tricky due to different data structures
