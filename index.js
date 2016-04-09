@@ -62,7 +62,13 @@ exports.aceAttribClasses = function(hook_name, attr, cb){
 
 // Include CSS for HTML export
 exports.stylesForExport = function(hook, padId, cb){
-  cb(generateCSSFromContexts(contexts[padId].context));
+  if(!contexts[padId]){
+    loadPadContexts(padId, null, function(){
+      cb(generateCSSFromContexts(contexts[padId].context));
+    });
+  }else{
+    cb(generateCSSFromContexts(contexts[padId].context));
+  }
 };
 
 // Add the props to be supported in export
@@ -157,6 +163,41 @@ function _analyzeLine(alineAttrs, apool) {
   return context;
 }
 
+function loadPadContexts(padId, req, cb){
+  var apiEndpoint = "https://editor.mymadison.io/api/docs/"+padId+"/context";
+
+  if(!settings.ep_api_auth || settings.ep_api_auth.fake){
+    console.error("No settings set for api auth access");
+    apiEndpoint = "http://127.0.0.1/context.json";
+    settings.ep_api_auth = {};
+    settings.ep_api_auth.fake = true;
+    req = {};
+    req.cookies = "NO COOKIE AS ThIS IS A FAKE REQUEST!";
+  }
+
+  // Get the current document.
+  var documentOptions = {
+    uri: apiEndpoint,
+    method: settings.ep_api_auth.method ? settings.ep_api_auth.method : 'GET',
+    json: true,
+    headers : {
+      Cookie: getAsUriParameters(req.cookies)
+    }
+  };
+  request(documentOptions, function(e,r,styles){
+    // res.setHeader('Content-Type', 'application/javascript');
+    // res.send("<script type='text/javascript'>var contexts = " +JSON.stringify(styles) +"</script>");
+    contexts[padId] = styles;
+    var styleArr = [];
+    var derp = styles.context;
+    for(var key in derp){
+      styleArr.push("context:"+key);
+    }
+    contexts[padId].array = styleArr;
+    cb(styles);
+  });
+};
+
 exports.expressCreateServer = function (hook_name, args, callback) {
   args.app.get(/\/context\/json/, function(req, res) {
     var fullURL = req.protocol + "://" + req.get('host') + req.url;
@@ -165,34 +206,7 @@ exports.expressCreateServer = function (hook_name, args, callback) {
     var splitPath = path.split("/");
     var padId= splitPath[4];
     var padURL = req.protocol + "://" + req.get('host') + "/p/" +padId;
-    var apiEndpoint = "https://editor.mymadison.io/api/docs/"+padId+"/context";
-
-    if(!settings.ep_api_auth || settings.ep_api_auth.fake){
-      console.error("No settings set for api auth access");
-      apiEndpoint = "http://127.0.0.1/context.json";
-      settings.ep_api_auth = {};
-      settings.ep_api_auth.fake = true;
-    }
-
-    // Get the current document.
-    var documentOptions = {
-      uri: apiEndpoint,
-      method: settings.ep_api_auth.method ? settings.ep_api_auth.method : 'GET',
-      json: true,
-      headers : {
-        Cookie: getAsUriParameters(req.cookies)
-      }
-    };
-    request(documentOptions, function(e,r,styles){
-      // res.setHeader('Content-Type', 'application/javascript');
-      // res.send("<script type='text/javascript'>var contexts = " +JSON.stringify(styles) +"</script>");
-      contexts[padId] = styles;
-      var styleArr = [];
-      var derp = styles.context;
-      for(var key in derp){
-        styleArr.push("context:"+key);
-      }
-      contexts[padId].array = styleArr;
+    loadPadContexts(padId, req, function(){
       res.send("var contexts = " +JSON.stringify(styles));
     });
   });
