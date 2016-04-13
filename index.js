@@ -82,19 +82,15 @@ exports.exportHtmlAdditionalTags = function(hook, pad, cb){
 // line, apool,attribLine,text
 exports.getLineHTMLForExport = function (hook, line) {
   var lineContent = rewriteLine(line);
-  return lineContent;
-  // CAKE TO DO STill process line stuff as below
 
-  var lineContent = line.lineContent;
   // TODO: when "asyncLineHTMLForExport" hook is available on Etherpad, return "lineContent" instead of re-setting it
   line.lineContent = lineContent;
-
-  /*
+  var padId = line.padId;
   var contextV = _analyzeLine(line.attribLine, line.apool);
 
   // If it has a context
   if(contextV){
-    var contexts = contextV.split("$");
+    var contextss = contextV.split("$");
   }else{
     return line.lineContent + "<br>";
   }
@@ -102,10 +98,8 @@ exports.getLineHTMLForExport = function (hook, line) {
   var before = "";
   var after = "";
 
-  // we prolly need to do a htt request for contexts here..
-  // CAKE here we need the padId!
-  if (contexts[padId].array.length) {
-    contexts[padId].array.forEach(function(contextV){
+  if (contextss.length) {
+    contextss.forEach(function(contextV){
       if(contextV.indexOf("context") !== 0){
         before += "<p class='context context" + contextV + "'><span class='contextbefore'>";
       }else{
@@ -113,6 +107,7 @@ exports.getLineHTMLForExport = function (hook, line) {
       }
 
       // TODO, ensure this is not hard coded..  Impossible to parse CSS prolly so need a decent solution
+      // CAKE
       if(contextV === "whereas"){
         before += "WHEREAS, "
         after += ", and";
@@ -143,7 +138,6 @@ exports.getLineHTMLForExport = function (hook, line) {
   }else{ // no context, nothing to remove
     return line.lineContent;
   }
-  */
 }
 
 // clean up HTML into something sane
