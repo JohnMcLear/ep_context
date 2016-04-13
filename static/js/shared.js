@@ -5,6 +5,9 @@ for (var context in contexts){
   supportedContexts.push("context" + context);
   supportedContexts.push("contextfirst" + context);
   supportedContexts.push("contextlast" + context);
+  supportedContexts.push(context);
+  supportedContexts.push("first" + context);
+  supportedContexts.push("last" + context);
 }
 
 exports.collectContentPre = function(hook, context){
@@ -14,17 +17,27 @@ exports.collectContentPre = function(hook, context){
   if(tname === "div" || tname === "p"){
     delete lineAttributes['context'];
   }
-
   // Works for lines
   if(supportedContexts.indexOf(tname) !== -1){
     lineAttributes['context'] = tname;
-  }
+  }else{
+    // Works for spans
+    // I get a bit fucked up sometimes..  Meth is bad..
+    if(tname.indexOf("context") === 0){
+      var ctname = tname.substring(7,tname.length);
 
-  // Works for spans
-  if(tname.indexOf("context") === 0){
-    var ctname = tname.substring(7,tname.length);
-    if(contexts[ctname]){
-      context.cc.doAttrib(context.state, "context:"+ctname);
+      // Process first and last items from metacontexts down to contexts
+      if(ctname.indexOf("last") === 0){
+        ctname = ctname.substring(4, ctname.length);
+      }
+      if(ctname.indexOf("first") === 0){
+        ctname = ctname.substring(5, ctname.length);
+      }
+      // For some reason I don't understand this is required, we can't use the local objects any more..  Scope issue?
+      var styles = clientVars.plugins.plugins.ep_context.styles;
+      if(styles[ctname] !== -1){
+        context.cc.doAttrib(context.state, "context:"+ctname);
+      }
     }
   }
 
@@ -34,7 +47,6 @@ exports.collectContentPre = function(hook, context){
     level = level[0].split(":")[1];
     context.cc.doAttrib(context.state, "context:" + level);
   }
-
   // Probably not needed
   // lineAttributes['lastlinebutton'] = true;
 };
@@ -46,7 +58,6 @@ exports.collectContentPost = function(hook, context){
   if(supportedContexts.indexOf(tname) !== -1){
     delete lineAttributes['context'];
   }
-
   // Probably not needed
   // lineAttributes['lastlinebutton'] = true;
 
