@@ -299,7 +299,7 @@ exports.aceEditEvent = function(hook, call, cb){
     var padLength = rep.lines.length();
 
     // TODO: This should only fire on a new line, at the moment it fires on a new tab!
-    var attributes = documentAttributeManager.getAttributeOnLine(lastLine, 'context');
+    var attributes = documentAttributeManager.getAttributeOnLine(lastLine, 'contextLine');
 
     if(attributes){
       // First thing first we are seeing if its a big button push
@@ -324,7 +324,7 @@ exports.aceEditEvent = function(hook, call, cb){
           if(attributes.indexOf("first") === 0){
             attributes = attributes.substring(5, attributes.length);
           }
-          documentAttributeManager.setAttributeOnLine(thisLine, 'context', attributes);
+          documentAttributeManager.setAttributeOnLine(thisLine, 'contextLine', attributes);
         }
         clientVars.plugins.plugins.ep_context.crudeEnterCounter++;
       }
@@ -391,12 +391,16 @@ exports.aceEditEvent = function(hook, call, cb){
 // Our context attribute will result in a class
 exports.aceAttribsToClasses = function(hook, context){
   var classes = [];
+  console.log(context.key);
   if(context.key === 'context'){
     classes.push("context:"+context.value);
   }
   if(context.key.indexOf('context') !== -1){
     var contextSplit = context.key.split(":")[1];
     if(contextSplit) classes.push("context:"+contextSplit);
+  }
+  if(context.key === 'contextLine'){
+    classes.push("context:"+context.value);
   }
   return classes;
 }
@@ -415,7 +419,8 @@ exports.aceAttribClasses = function(hook, attr){
 }
 
 exports.aceCreateDomLine = function(hook_name, args, cb) {
-  // console.log(args.cls);
+  console.log(args.cls);
+
   if (args.cls.indexOf('context:') >= 0) {
     var clss = [];
     var argClss = args.cls.split(" ");
@@ -443,6 +448,9 @@ exports.aceRegisterBlockElements = function(){
     styleArr.push("contextfirst"+context);
     styleArr.push("context"+context);
     styleArr.push("contextlast"+context);
+    styleArr.push("contextLinefirst"+context);
+    styleArr.push("contextLine"+context);
+    styleArr.push("contextLinelast"+context);
   });
   return styleArr;
 }
@@ -482,7 +490,7 @@ function doContext(level){
     lastLine = Math.max(firstLine, rep.selEnd[0] - ((rep.selEnd[1] === 0) ? 1 : 0));
     _(_.range(firstLine, lastLine + 1)).each(function(i){
 
-      var context = documentAttributeManager.getAttributeOnLine(i, 'context');
+      var context = documentAttributeManager.getAttributeOnLine(i, 'contextLine');
       // ADDING A LEVEL
       if(context !== "dummy" && context !== "" && level !== "dummy"){
         // console.log("adding a level");
@@ -499,17 +507,17 @@ function doContext(level){
         // REMOVING CONTEXT ALLTOGETHER
         if(level === "dummy" && contexts.length === 0){
           // console.log("removing attribute on line");
-          documentAttributeManager.removeAttributeOnLine(i, 'context');
+          documentAttributeManager.removeAttributeOnLine(i, 'contextLine');
         }else{
           // console.log("not at bottom level so changing context for line");
-          documentAttributeManager.setAttributeOnLine(i, 'context', joinedLevel.toLowerCase());
+          documentAttributeManager.setAttributeOnLine(i, 'contextLine', joinedLevel.toLowerCase());
         }
       }
 
       // SETTING ATTRIBUTE ON LINE
       if(level !== "dummy" && level){
         // console.log("set attr on", firstLine, level.toLowerCase());
-        documentAttributeManager.setAttributeOnLine(i, 'context', level.toLowerCase());
+        documentAttributeManager.setAttributeOnLine(i, 'contextLine', level.toLowerCase());
       }
     });
   }
@@ -529,7 +537,7 @@ function getLastContext(editorContext, cb){
   lastLine = Math.max(firstLine, rep.selEnd[0] - ((rep.selEnd[1] === 0) ? 1 : 0));
   _(_.range(firstLine, lastLine + 1)).each(function(i){
     // Does range already have attribute?
-    var attributes = documentAttributeManager.getAttributeOnLine(i, 'context');
+    var attributes = documentAttributeManager.getAttributeOnLine(i, 'contextLine');
     // console.log("attributes", attributes);
     // take last attribute from attributes, split it
     var split = attributes.split("$$");
@@ -568,7 +576,7 @@ function getLastContext(editorContext, cb){
 function getLineContext(lineNumber){
   var documentAttributeManager = this.documentAttributeManager;
   // Does range already have attribute?
-  var attributes = documentAttributeManager.getAttributeOnLine(lineNumber, 'context');
+  var attributes = documentAttributeManager.getAttributeOnLine(lineNumber, 'contextLine');
   // take last attribute from attributes, split it
   var split = attributes.split("$$");
   // clean empty values
@@ -735,7 +743,7 @@ function reDrawContextOnLeft(documentAttributeManager){
     var offsetTop = $(line)[0].offsetTop || 0
     var offsetHeight = $(line)[0].offsetHeight /2;
     var offset = offsetTop + offsetHeight;
-    var context = documentAttributeManager.getAttributeOnLine(k, 'context');
+    var context = documentAttributeManager.getAttributeOnLine(k, 'contextLine');
 
     // Given hello$$world returns ["hello","world"];
     var splitContexts = context.split("$$");
@@ -817,8 +825,8 @@ function reAssignContextToLastLineOfContextType(documentAttributeManager){
       if(thisContexts[nextLineKey]) nextLine = thisContexts[nextLineKey];
     }
 
-    var context = documentAttributeManager.getAttributeOnLine(lineNumber, 'context');
-    nextLine.context = documentAttributeManager.getAttributeOnLine(lineNumber+1, 'context');
+    var context = documentAttributeManager.getAttributeOnLine(lineNumber, 'contextLine');
+    nextLine.context = documentAttributeManager.getAttributeOnLine(lineNumber+1, 'contextLine');
     thisLine.context = context;
 
 /*
@@ -831,11 +839,11 @@ function reAssignContextToLastLineOfContextType(documentAttributeManager){
     // If this lines context is the same as the next lines context
     // So remove it..
     if(thisLine.hasLastLine && nextLine.hasContext && (nextLine.context === thisLine.context)){
-      documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
+      documentAttributeManager.removeAttributeOnLine(lineNumber, 'contextLine');
       $.each(contexts, function(contextKey){
         if(context.indexOf(contextKey) !== -1){
           // console.warn("removed lastline from ", lineNumber);
-          documentAttributeManager.setAttributeOnLine(lineNumber, 'context', contextKey);
+          documentAttributeManager.setAttributeOnLine(lineNumber, 'contextLine', contextKey);
         }
       });
     }
@@ -846,9 +854,9 @@ function reAssignContextToLastLineOfContextType(documentAttributeManager){
     $.each(contexts, function(contextKey){
       if(context.indexOf("first"+contextKey) !== -1){
         if(thisLine.hasContext && (prevLine.context === contextKey || prevLine.context === "first"+contextKey) && context){
-          documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
+          documentAttributeManager.removeAttributeOnLine(lineNumber, 'contextLine');
           // console.warn("set NORMAL on ", lineNumber);
-          documentAttributeManager.setAttributeOnLine(lineNumber, 'context', contextKey);
+          documentAttributeManager.setAttributeOnLine(lineNumber, 'contextLine', contextKey);
           // console.log("removing firstwhereas from ", lineNumber, thisLine, prevLine, context)
         }
       }
@@ -865,8 +873,8 @@ function reAssignContextToLastLineOfContextType(documentAttributeManager){
       $.each(contexts, function(contextKey){
         if(context !== "last"+contextKey && context === contextKey){
           // console.warn("set LASTLINE on ", lineNumber);
-          documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
-          documentAttributeManager.setAttributeOnLine(lineNumber, 'context', 'last'+contextKey);
+          documentAttributeManager.removeAttributeOnLine(lineNumber, 'contextLine');
+          documentAttributeManager.setAttributeOnLine(lineNumber, 'contextLine', 'last'+contextKey);
         }
       });
     }
@@ -875,13 +883,13 @@ function reAssignContextToLastLineOfContextType(documentAttributeManager){
     // If this is the first line with this context
     $.each(contexts, function(contextKey){
       if(thisLine.hasContext && (prevLine.context !== contextKey)){
-        var context = documentAttributeManager.getAttributeOnLine(lineNumber, 'context');
+        var context = documentAttributeManager.getAttributeOnLine(lineNumber, 'contextLine');
         // console.log("Current context of line", lineNumber, context);
         if(context === contextKey && prevLine.context !== "first"+contextKey){
           // console.log("setting first", lineNumber, "first"+context);
           // console.warn("set FIRSTLINE on ", lineNumber);
-          documentAttributeManager.removeAttributeOnLine(lineNumber, 'context');
-          documentAttributeManager.setAttributeOnLine(lineNumber, 'context', "first"+contextKey);
+          documentAttributeManager.removeAttributeOnLine(lineNumber, 'contextLine');
+          documentAttributeManager.setAttributeOnLine(lineNumber, 'contextLine', "first"+contextKey);
         }
       }
     });
@@ -1000,7 +1008,7 @@ function handlePaste(){
         });
 
         // Set the Attribute to Whereas for the line
-        documentAttributeManager.setAttributeOnLine(lineNumber, 'context', lineContext);
+        documentAttributeManager.setAttributeOnLine(lineNumber, 'contextLine', lineContext);
 
 
 

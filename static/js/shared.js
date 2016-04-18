@@ -2,6 +2,7 @@ var supportedContexts = [];
 var contexts = require('./contexts').contexts;
 
 for (var context in contexts){
+  console.log("pushed");
   supportedContexts.push("context" + context);
   supportedContexts.push("contextfirst" + context);
   supportedContexts.push("contextlast" + context);
@@ -17,8 +18,11 @@ exports.collectContentPre = function(hook, context){
   if(tname === "div" || tname === "p"){
     delete lineAttributes['context'];
   }
+  console.log(context);
   // Works for lines
+  console.log("tname", tname, supportedContexts);
   if(supportedContexts.indexOf(tname) !== -1){
+    console.log("line attr!");
     lineAttributes['context'] = tname;
   }else{
     // Works for spans
