@@ -32,22 +32,26 @@ try{
 }
 
 function generateCSSFromContexts(contexts){
+  console.warn("contexts", contexts);
   if(!contexts){
     console.warn("no contexts when there probably should be?", contexts);
     return;
   }
   // console.log("contexts", typeof contexts, contexts);
   var cssItems = []; // For all contexts
-  // contexts.forEach(function(id){
+
+  // We need to understand why this is sometimes required, removing it breaks timeslider..
+  if(contexts.context) contexts = contexts.context;
+
   Object.keys(contexts).forEach(function(id){
     var context = contexts[id];
+    console.log("context", context);
     // console.log("context", typeof context, context);
     var idCssItems = []; // Specific to this context, will get squashed soon
     if(typeof context !== "object") return;
     Object.keys(context).forEach(function(position){
       var rules = context[position];
       if(position === "displayName") return;
-
       // These guys provide basic CSS rules for a context
       if(position === "css" || position === "after" || position === "before"){
         if(position === "css"){

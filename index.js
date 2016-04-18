@@ -22,20 +22,20 @@ exports.eejsBlock_dd_format = function (hook_name, args, cb) {
   return cb();
 }
 
-exports.eejsBlock_scripts = function (hook_name, args, cb) {
-  args.content = args.content + "<script src='../static/plugins/ep_context/static/js/contexts.js'></script>";
-  args.content = args.content + "<script src='../context/json'></script>";
+exports.scripts = function (hook_name, args, cb) {
+  args.content = args.content + "<script type='text/javascript' src='../static/plugins/ep_context/static/js/contexts.js'></script>";
+  args.content = args.content + "<script type='text/javascript' src='../context/json'></script>";
   return cb();
 }
 
 exports.eejsBlock_timesliderScripts = function (hook_name, args, cb) {
-  args.content = args.content + "<script src='../../../static/plugins/ep_context/static/js/contexts.js'></script>";
-  args.content = args.content + "<script src='../context/json'></script>";
+  args.content = args.content + "<script type='text/javascript' src='../../../static/plugins/ep_context/static/js/contexts.js'></script>";
+  args.content = args.content + "<script type='text/javascript' src='../context/json'></script>";
   return cb();
 }
 
 exports.eejsBlock_timesliderBody = function(hook_name, args, cb){
-  args.content = args.content + "<script>var head = $('body').append('<style>'+generateCSSFromContexts()+'</style>')</script>";
+  args.content = args.content + "<script>var head = $('body').append('<style>'+generateCSSFromContexts(contexts)+'</style>')</script>";
   return cb();
 }
 // timesliderStyles

@@ -10,6 +10,8 @@ var contextStrings = []; // Used for Copy/pasting
 var contextStartStrings = {}; // Used for locating which string starts with a given value
 
 contexts = contexts.context;
+console.log("derp");
+console.log("contexts", contexts);
 
 // Setup the relevant lookup objects, one time operation
 $.each(contexts, function(key, context){
@@ -391,7 +393,6 @@ exports.aceEditEvent = function(hook, call, cb){
 // Our context attribute will result in a class
 exports.aceAttribsToClasses = function(hook, context){
   var classes = [];
-  console.log(context.key);
   if(context.key === 'context'){
     classes.push("context:"+context.value);
   }
@@ -419,8 +420,6 @@ exports.aceAttribClasses = function(hook, attr){
 }
 
 exports.aceCreateDomLine = function(hook_name, args, cb) {
-  console.log(args.cls);
-
   if (args.cls.indexOf('context:') >= 0) {
     var clss = [];
     var argClss = args.cls.split(" ");
