@@ -32,10 +32,18 @@ try{
 }
 
 function generateCSSFromContexts(contexts){
+  if(!contexts){
+    console.warn("no contexts when there probably should be?", contexts);
+    return;
+  }
+  // console.log("contexts", typeof contexts, contexts);
   var cssItems = []; // For all contexts
+  // contexts.forEach(function(id){
   Object.keys(contexts).forEach(function(id){
     var context = contexts[id];
+    // console.log("context", typeof context, context);
     var idCssItems = []; // Specific to this context, will get squashed soon
+    if(typeof context !== "object") return;
     Object.keys(context).forEach(function(position){
       var rules = context[position];
       if(position === "displayName") return;
@@ -105,6 +113,7 @@ function generateCSSFromContexts(contexts){
     // console.log("idCSSItems", idCssItems);
     idCssItems = idCssItems.join("\n");
     cssItems.push(idCssItems);
+
   });
   var cssString = cssItems.join("\n");
   return cssString;

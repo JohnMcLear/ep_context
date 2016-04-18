@@ -65,8 +65,12 @@ exports.aceAttribClasses = function(hook_name, attr, cb){
 // CAKE STILL TO DO: Madison needs to accept this request as it wont have the correct cookie info!
 exports.stylesForExport = function(hook, padId, cb){
   if(!contexts[padId]){
-    loadPadContexts(padId, null, function(){
-      cb(generateCSSFromContexts(contexts[padId].context));
+    loadPadContexts(padId, null, function(e, styles){
+      if(e){
+        console.error("Error getting pad contexts bro");
+      }else{
+        cb(generateCSSFromContexts(contexts[padId].context));
+      }
     });
   }else{
     cb(generateCSSFromContexts(contexts[padId].context));
@@ -168,6 +172,7 @@ function _analyzeLine(alineAttrs, apool) {
 
 function loadPadContexts(padId, req, cb){
   var apiEndpoint = "https://editor.mymadison.io/api/docs/"+padId+"/context";
+  var e = false;
 
   if(!settings.ep_api_auth || settings.ep_api_auth.fake){
     console.error("No settings set for api auth access");
@@ -187,7 +192,7 @@ function loadPadContexts(padId, req, cb){
       Cookie: getAsUriParameters(req.cookies)
     }
   };
-  request(documentOptions, function(e,r,styles){
+  request(documentOptions, function(err,r,styles){
     // res.setHeader('Content-Type', 'application/javascript');
     // res.send("<script type='text/javascript'>var contexts = " +JSON.stringify(styles) +"</script>");
     contexts[padId] = styles;
@@ -197,7 +202,8 @@ function loadPadContexts(padId, req, cb){
       styleArr.push("context:"+key);
     }
     contexts[padId].array = styleArr;
-    cb(styles);
+    if(err) e = err;
+    cb(e, styles);
   });
 };
 
@@ -209,8 +215,12 @@ exports.expressCreateServer = function (hook_name, args, callback) {
     var splitPath = path.split("/");
     var padId= splitPath[4];
     var padURL = req.protocol + "://" + req.get('host') + "/p/" +padId;
-    loadPadContexts(padId, req, function(styles){
-      res.send("var contexts = " +JSON.stringify(styles));
+    loadPadContexts(padId, req, function(e, styles){
+      if(e){
+        console.error("error loading pad contexts", e);
+      }else{
+        res.send("var contexts = " +JSON.stringify(styles));
+      }
     });
   });
   args.app.get(/\/context\/css/, function(req, res) {
