@@ -268,7 +268,6 @@ function getAsUriParameters(data) {
 function rewriteLine(hook){
   var lineContent = hook.lineContent;
   var padId = hook.padId;
-  // WTF this never runs either on either plugin!
   contexts[padId].array.forEach(function(context){
     context = context.replace("context:","");
     if(lineContent){
