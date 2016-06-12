@@ -32,7 +32,9 @@ try{
 }
 
 function generateCSSFromContexts(contexts){
-  console.warn("contexts", contexts);
+  clientVars.plugins.plugins.ep_context.stylePrefixArray = [];
+  clientVars.plugins.plugins.ep_context.stylePrefixes = [];
+
   if(!contexts){
     console.warn("no contexts when there probably should be?", contexts);
     return;
@@ -54,6 +56,13 @@ function generateCSSFromContexts(contexts){
       if(position === "displayName") return;
       // These guys provide basic CSS rules for a context
       if(position === "css" || position === "after" || position === "before"){
+        
+        // For autocompletion we have to store the pre-given string in an array..
+        if(position === "before"){
+          clientVars.plugins.plugins.ep_context.stylePrefixArray.push(rules.content);
+          clientVars.plugins.plugins.ep_context.stylePrefixes.push(id);
+        }
+        
         if(position === "css"){
           idCssItems.push("context"+id+" { "+rules+ ";}");
           idCssItems.push("contextfirst"+id+" { "+rules+ ";}");
