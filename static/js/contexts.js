@@ -102,6 +102,8 @@ try{
 }
 
 function generateCSSFromContexts(){
+  clientVars.plugins.plugins.ep_context.stylePrefixArray = [];
+  clientVars.plugins.plugins.ep_context.stylePrefixes = [];
   var cssItems = []; // For all contexts
   $.each(contexts, function(id, context){
     var idCssItems = []; // Specific to this context, will get squashed soon
@@ -110,6 +112,10 @@ function generateCSSFromContexts(){
 
       // These guys provide basic CSS rules for a context
       if(position === "css" || position === "after" || position === "before"){
+        if(position === "before"){
+          clientVars.plugins.plugins.ep_context.stylePrefixArray.push(rules.content);
+          clientVars.plugins.plugins.ep_context.stylePrefixes.push(id);
+        }
         if(position === "css"){
           idCssItems.push("context"+id+" { "+rules+ ";}");
           idCssItems.push("contextfirst"+id+" { "+rules+ ";}");
