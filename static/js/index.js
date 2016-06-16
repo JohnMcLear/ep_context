@@ -271,6 +271,28 @@ exports.aceEditEvent = function(hook, call, cb){
     return;
   }
 
+  if(clientVars.plugins.plugins.ep_context.stylePrefixes && call.callstack.docTextChanged){
+    var lowerCasePrefixes = [];
+    $.each(clientVars.plugins.plugins.ep_context.stylePrefixArray, function(k, v){
+      lowerCasePrefixes.push(v.toLowerCase());
+    });
+    // get the line text
+    var lineContent = rep.lines.atIndex(rep.selStart[0]).text;
+    // Does this lineContent exist in the prefixes array?
+    var loc = lowerCasePrefixes.indexOf(lineContent.toLowerCase());
+    if(loc !== -1){
+      var lineLength = lineContent.length;
+      var lineNumber = rep.selStart[0];
+      var startLocation = 0;
+      padEditor.callWithAce(function(ace){
+        // Replace line content
+        ace.ace_replaceRange([lineNumber,startLocation], [lineNumber,lineLength], "");
+        // Set line context
+        ace.ace_doContext(clientVars.plugins.plugins.ep_context.stylePrefixes[loc]);
+      });
+    }
+  }
+
   // reDraw controls to this location..  (might be a little confusing)...
   if(cs.type === "handleKeyEvent" || cs.type === "idleWorkTimer"){
     reDrawControls(rep.selStart[0]);
