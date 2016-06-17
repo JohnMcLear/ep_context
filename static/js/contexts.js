@@ -32,8 +32,15 @@ try{
 }
 
 function generateCSSFromContexts(contexts){
-  clientVars.plugins.plugins.ep_context.stylePrefixArray = [];
-  clientVars.plugins.plugins.ep_context.stylePrefixes = [];
+  // We're operating on the server so there are no clientVars
+  if(typeof clientVars !== 'undefined'){
+    console.error("is client");
+    var isClient = true;
+  }
+  if(isClient){
+    clientVars.plugins.plugins.ep_context.stylePrefixArray = [];
+    clientVars.plugins.plugins.ep_context.stylePrefixes = [];
+  }
 
   if(!contexts){
     console.warn("no contexts when there probably should be?", contexts);
@@ -59,8 +66,10 @@ function generateCSSFromContexts(contexts){
         
         // For autocompletion we have to store the pre-given string in an array..
         if(position === "before"){
-          clientVars.plugins.plugins.ep_context.stylePrefixArray.push(rules.content);
-          clientVars.plugins.plugins.ep_context.stylePrefixes.push(id);
+          if(isClient){
+            clientVars.plugins.plugins.ep_context.stylePrefixArray.push(rules.content);
+            clientVars.plugins.plugins.ep_context.stylePrefixes.push(id);
+          }
         }
         
         if(position === "css"){
