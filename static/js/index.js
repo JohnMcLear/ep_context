@@ -10,8 +10,7 @@ var contextStrings = []; // Used for Copy/pasting
 var contextStartStrings = {}; // Used for locating which string starts with a given value
 
 contexts = contexts.context;
-console.log("derp");
-console.log("contexts", contexts);
+// console.log("contexts", contexts);
 
 // Setup the relevant lookup objects, one time operation
 $.each(contexts, function(key, context){

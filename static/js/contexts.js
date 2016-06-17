@@ -53,7 +53,7 @@ function generateCSSFromContexts(contexts){
 
   Object.keys(contexts).forEach(function(id){
     var context = contexts[id];
-    console.log("context", context);
+    // console.log("context", context);
     // console.log("context", typeof context, context);
     var idCssItems = []; // Specific to this context, will get squashed soon
     if(typeof context !== "object") return;
