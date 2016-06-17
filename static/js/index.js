@@ -300,7 +300,7 @@ exports.aceEditEvent = function(hook, call, cb){
 
   // Hide the select on click of the rest of the page
   if(cs.type == "handleClick"){
-    $('iframe[name="ace_outer"]').contents().find('.context-selection').hide();
+    $('iframe[name="ace_outer"]').contents().find('#contextButtonsContainer > .context-selection').hide();
   }
 
   // reDraw last line button if we're setting up the document or it's changed at all
