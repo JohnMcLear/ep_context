@@ -34,7 +34,6 @@ try{
 function generateCSSFromContexts(contexts){
   // We're operating on the server so there are no clientVars
   if(typeof clientVars !== 'undefined'){
-    console.error("is client");
     var isClient = true;
   }
   if(isClient){
