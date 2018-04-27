@@ -72,14 +72,15 @@ exports.exportHtmlAdditionalTags = function(hook, pad, cb){
 };
 
 // line, apool,attribLine,text
-exports.getLineHTMLForExport = function (hook, line) {
-  var contextV = _analyzeLine(line.attribLine, line.apool);
+exports.getLineHTMLForExport = function (hook, context) {
+  var contextV = _analyzeLine(context.attribLine, context.apool);
 
   // If it has a context
   if(contextV){
     var contexts = contextV.split("$");
   }else{
-    return line.lineContent + "<br>";
+    context.lineContent += "<br>";
+    return true;
   }
 
   var before = "";
@@ -119,11 +120,13 @@ exports.getLineHTMLForExport = function (hook, line) {
       after += "</p>";
     });
     // Remove leading * else don't..
-    var newString = before + line.lineContent.substring(1) + "<span class='contextafter'>" + after + "</span>" + "<br>";
-    return newString;
-  }else{ // no context, nothing to remove
-    return line.lineContent;
+    if (context.lineContent[0] === '*') {
+      context.lineContent = context.lineContent.substring(1)
+    }
+    context.lineContent = before + context.lineContent + "<span class='contextafter'>" + after + "</span>" + "<br>";
+    return true;
   }
+  return true;
 }
 
 // clean up HTML into something sane
