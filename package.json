@@ -1,7 +1,7 @@
 {
   "description": "Context for Etherpad Documents, very WIP.",
   "name": "ep_context",
-  "version": "0.0.18",
+  "version": "0.0.19",
   "author": {
     "name": "John McLear",
     "email": "john@mclear.co.uk"
